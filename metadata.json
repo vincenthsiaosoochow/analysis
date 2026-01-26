@@ -1,0 +1,8 @@
+
+{
+  "name": "FUHUNG - AI Art Discoverer",
+  "description": "An AI-powered art analysis and discovery platform that uses vision technology to uncover the stories, styles, and deeper meanings behind masterpieces.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}

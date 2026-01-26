@@ -1,0 +1,162 @@
+/**
+ * API 客户端配置
+ * 用于与后端服务通信
+ */
+
+// API 基础 URL
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+
+/**
+ * 通用请求函数
+ */
+async function request<T>(
+    endpoint: string,
+    options: RequestInit = {}
+): Promise<T> {
+    const url = `${API_BASE_URL}${endpoint}`;
+
+    // 获取 token
+    const token = localStorage.getItem('auth_token');
+
+    const headers: HeadersInit = {
+        ...options.headers,
+    };
+
+    // 如果有 token，添加到请求头
+    if (token && !headers['Authorization']) {
+        headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    // 如果 body 是 JSON 对象，添加 Content-Type
+    if (options.body && typeof options.body === 'string') {
+        headers['Content-Type'] = 'application/json';
+    }
+
+    const response = await fetch(url, {
+        ...options,
+        headers,
+    });
+
+    if (!response.ok) {
+        const error = await response.json().catch(() => ({ detail: '请求失败' }));
+        throw new Error(error.detail || '请求失败');
+    }
+
+    return response.json();
+}
+
+/**
+ * 认证相关 API
+ */
+export const authAPI = {
+    /**
+     * 用户注册
+     */
+    register: async (data: { name: string; phone: string; password: string }) => {
+        return request('/api/auth/register', {
+            method: 'POST',
+            body: JSON.stringify(data),
+        });
+    },
+
+    /**
+     * 用户登录
+     */
+    login: async (data: { phone: string; password: string }) => {
+        const result = await request<{
+            success: boolean;
+            token: string;
+            user: { id: number; name: string; phone: string; avatar: string };
+        }>('/api/auth/login', {
+            method: 'POST',
+            body: JSON.stringify(data),
+        });
+
+        // 保存 token
+        if (result.token) {
+            localStorage.setItem('auth_token', result.token);
+        }
+
+        return result;
+    },
+
+    /**
+     * 重置密码
+     */
+    resetPassword: async (data: { phone: string; new_password: string }) => {
+        return request('/api/auth/reset-password', {
+            method: 'POST',
+            body: JSON.stringify(data),
+        });
+    },
+
+    /**
+     * 登出
+     */
+    logout: () => {
+        localStorage.removeItem('auth_token');
+    },
+};
+
+/**
+ * 艺术品分析相关 API
+ */
+export const analysisAPI = {
+    /**
+     * 上传并分析艺术品图片
+     */
+    analyze: async (imageFile: File) => {
+        const formData = new FormData();
+        formData.append('image', imageFile);
+
+        const token = localStorage.getItem('auth_token');
+        const response = await fetch(`${API_BASE_URL}/api/analysis/analyze`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+            },
+            body: formData,
+        });
+
+        if (!response.ok) {
+            const error = await response.json().catch(() => ({ detail: '分析失败' }));
+            throw new Error(error.detail || '分析失败');
+        }
+
+        return response.json();
+    },
+
+    /**
+     * 获取我的分析记录
+     */
+    getMyAnalyses: async () => {
+        const result = await request<{ success: boolean; analyses: any[] }>(
+            '/api/analysis/my-analyses'
+        );
+        return result.analyses;
+    },
+
+    /**
+     * 获取公开分析列表
+     */
+    discover: async (search?: string) => {
+        const params = new URLSearchParams();
+        if (search) params.append('search', search);
+
+        const endpoint = `/api/analysis/discover${params.toString() ? '?' + params.toString() : ''}`;
+        const result = await request<{ success: boolean; analyses: any[] }>(endpoint);
+        return result.analyses;
+    },
+
+    /**
+     * 收藏/取消收藏
+     */
+    toggleFavorite: async (analysisId: number) => {
+        return request<{ success: boolean; isSaved: boolean }>(
+            `/api/analysis/${analysisId}/favorite`,
+            { method: 'POST' }
+        );
+    },
+};
+
+export default { authAPI, analysisAPI };
