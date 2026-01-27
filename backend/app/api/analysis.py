@@ -185,7 +185,8 @@ def get_analysis_image(
 
         from fastapi import Response
         return Response(content=image_data, media_type=media_type, headers={
-            "Cache-Control": "public, max-age=31536000" # Cache for 1 year
+            "Cache-Control": "public, max-age=31536000",
+            "Access-Control-Allow-Origin": "*"
         })
     except Exception as e:
         print(f"Error serving image for {analysis_id}: {e}")

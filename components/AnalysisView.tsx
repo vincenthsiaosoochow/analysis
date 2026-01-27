@@ -168,12 +168,12 @@ const AnalysisView: React.FC<AnalysisViewProps> = ({ analysis, onBack, isSaved =
               </div>
               <div className="space-y-5">
                 {[
-                  { label: '艺术风格', content: analysis.coreAnalysis.styleAndSchool, icon: 'brush' },
-                  { label: '色彩运用', content: analysis.coreAnalysis.colorUsage, icon: 'palette' },
-                  { label: '笔触肌理', content: analysis.coreAnalysis.brushworkTexture, icon: 'texture' },
-                  { label: '构图布局', content: analysis.coreAnalysis.compositionLayout, icon: 'grid_view' },
-                  { label: '题材意境', content: analysis.coreAnalysis.themeAndMood, icon: 'mood' },
-                  { label: '艺术价值', content: analysis.coreAnalysis.artisticValue, icon: 'stars' },
+                  { label: '艺术风格', content: renderSafeContent(analysis.coreAnalysis.styleAndSchool), icon: 'brush' },
+                  { label: '色彩运用', content: renderSafeContent(analysis.coreAnalysis.colorUsage), icon: 'palette' },
+                  { label: '笔触肌理', content: renderSafeContent(analysis.coreAnalysis.brushworkTexture), icon: 'texture' },
+                  { label: '构图布局', content: renderSafeContent(analysis.coreAnalysis.compositionLayout), icon: 'grid_view' },
+                  { label: '题材意境', content: renderSafeContent(analysis.coreAnalysis.themeAndMood), icon: 'mood' },
+                  { label: '艺术价值', content: renderSafeContent(analysis.coreAnalysis.artisticValue), icon: 'stars' },
                 ].map((item, i) => (
                   <div key={i} className="flex gap-4 group">
                     <div className="size-8 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-center shrink-0">
@@ -198,16 +198,16 @@ const AnalysisView: React.FC<AnalysisViewProps> = ({ analysis, onBack, isSaved =
               <div className="space-y-4">
                 <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
                   <h4 className="text-xs font-bold text-slate-900 mb-2">基础信息</h4>
-                  <p className="text-sm text-slate-600 leading-relaxed">{analysis.artistInfo.basics}</p>
+                  <div className="text-sm text-slate-600 leading-relaxed">{renderSafeContent(analysis.artistInfo.basics)}</div>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div className="p-3 bg-fuhung-light-blue/30 rounded-xl">
                     <h4 className="text-[10px] font-bold text-fuhung-blue mb-1 uppercase">市场定位</h4>
-                    <p className="text-[13px] text-slate-800 font-medium">{analysis.artistInfo.marketPosition}</p>
+                    <div className="text-[13px] text-slate-800 font-medium">{renderSafeContent(analysis.artistInfo.marketPosition)}</div>
                   </div>
                   <div className="p-3 bg-fuhung-light-blue/30 rounded-xl">
                     <h4 className="text-[10px] font-bold text-fuhung-blue mb-1 uppercase">风格演变</h4>
-                    <p className="text-[13px] text-slate-800 font-medium">{analysis.artistInfo.styleEvolution}</p>
+                    <div className="text-[13px] text-slate-800 font-medium">{renderSafeContent(analysis.artistInfo.styleEvolution)}</div>
                   </div>
                 </div>
                 <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
@@ -236,12 +236,12 @@ const AnalysisView: React.FC<AnalysisViewProps> = ({ analysis, onBack, isSaved =
               <div className="space-y-6">
                 <div>
                   <h4 className="text-[10px] text-fuhung-blue font-bold tracking-widest uppercase mb-2">评级依据</h4>
-                  <p className="text-slate-300 text-sm leading-relaxed">{analysis.investmentAnalysis.ratingReason}</p>
+                  <div className="text-slate-300 text-sm leading-relaxed">{renderSafeContent(analysis.investmentAnalysis.ratingReason)}</div>
                 </div>
                 <div className="grid grid-cols-1 gap-4">
                   <div className="bg-white/5 p-4 rounded-xl border border-white/10">
                     <h4 className="text-xs font-bold text-white mb-2">市场行情 (近3年)</h4>
-                    <p className="text-xs text-slate-400">{analysis.investmentAnalysis.marketTrends}</p>
+                    <div className="text-xs text-slate-400">{renderSafeContent(analysis.investmentAnalysis.marketTrends)}</div>
                   </div>
                   <div className="bg-white/5 p-4 rounded-xl border border-white/10">
                     <h4 className="text-xs font-bold text-white mb-2">收藏建议</h4>
