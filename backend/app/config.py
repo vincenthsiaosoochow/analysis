@@ -21,8 +21,10 @@ class Settings(BaseSettings):
     JWT_EXPIRATION_HOURS: int = 24 * 7  # 7天
     
     # 通义千问 API 配置
+    # 通义千问 API 配置
     DASHSCOPE_API_KEY: str = os.getenv("DASHSCOPE_API_KEY", "")
-    QIANWEN_MODEL: str = "qwen-vl-plus"  # 通义千问 3-VL-Plus
+    # Default to qwen-vl-plus, but allow override (e.g. qwen3-vl-plus)
+    QIANWEN_MODEL: str = os.getenv("QIANWEN_MODEL", "qwen-vl-plus")
     QIANWEN_BASE_URL: str = "https://dashscope.aliyuncs.com/compatible-mode/v1"
     
     # 文件上传配置
