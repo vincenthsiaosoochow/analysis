@@ -26,7 +26,7 @@ const AnalysisView: React.FC<AnalysisViewProps> = ({ analysis, onBack, isSaved =
   const reportRef = useRef<HTMLDivElement>(null);
 
   const getRatingColor = (rating: string) => {
-    switch(rating) {
+    switch (rating) {
       case 'S': return 'bg-amber-500 text-white';
       case 'A': return 'bg-emerald-500 text-white';
       case 'B': return 'bg-blue-500 text-white';
@@ -40,7 +40,7 @@ const AnalysisView: React.FC<AnalysisViewProps> = ({ analysis, onBack, isSaved =
     try {
       const canvas = await html2canvas(reportRef.current, {
         useCORS: true,
-        scale: 3, 
+        scale: 3,
         backgroundColor: '#F8FAFC',
         logging: false,
       });
@@ -57,7 +57,7 @@ const AnalysisView: React.FC<AnalysisViewProps> = ({ analysis, onBack, isSaved =
   const handleShare = async () => {
     const shareTitle = `${analysis.artist}-${analysis.title} | 分析报告`;
     const shareText = `这是由 FUHUNG AI 生成的专业艺术品投资分析报告，深度解析了作品《${analysis.title}》的艺术价值与市场潜力。`;
-    
+
     if (navigator.share) {
       try {
         await navigator.share({
@@ -72,6 +72,32 @@ const AnalysisView: React.FC<AnalysisViewProps> = ({ analysis, onBack, isSaved =
       await navigator.clipboard.writeText(`${shareTitle}\n${shareText}\n${window.location.href}`);
       alert('分享链接已复制到剪贴板');
     }
+  };
+
+  const renderSafeContent = (content: any) => {
+    if (!content) return null;
+    if (typeof content === 'string') return content;
+    if (Array.isArray(content)) {
+      return (
+        <ul className="list-disc list-inside space-y-1">
+          {content.map((item, idx) => (
+            <li key={idx}>{item}</li>
+          ))}
+        </ul>
+      );
+    }
+    if (typeof content === 'object') {
+      return (
+        <div className="space-y-1">
+          {Object.entries(content).map(([key, value], idx) => (
+            <div key={idx}>
+              <span className="font-semibold">{key}:</span> {String(value)}
+            </div>
+          ))}
+        </div>
+      );
+    }
+    return String(content);
   };
 
   return (
@@ -172,7 +198,9 @@ const AnalysisView: React.FC<AnalysisViewProps> = ({ analysis, onBack, isSaved =
                 </div>
                 <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
                   <h4 className="text-xs font-bold text-slate-900 mb-2">代表作品与参考价</h4>
-                  <p className="text-sm text-slate-600 leading-relaxed whitespace-pre-line">{analysis.artistInfo.representativeWorks}</p>
+                  <div className="text-sm text-slate-600 leading-relaxed whitespace-pre-line">
+                    {renderSafeContent(analysis.artistInfo.representativeWorks)}
+                  </div>
                 </div>
               </div>
             </div>
@@ -203,7 +231,9 @@ const AnalysisView: React.FC<AnalysisViewProps> = ({ analysis, onBack, isSaved =
                   </div>
                   <div className="bg-white/5 p-4 rounded-xl border border-white/10">
                     <h4 className="text-xs font-bold text-white mb-2">收藏建议</h4>
-                    <p className="text-xs text-slate-400">{analysis.investmentAnalysis.collectionAdvice}</p>
+                    <div className="text-xs text-slate-400">
+                      {renderSafeContent(analysis.investmentAnalysis.collectionAdvice)}
+                    </div>
                   </div>
                 </div>
                 <div className="p-4 bg-red-500/10 rounded-xl border border-red-500/20">
@@ -211,7 +241,9 @@ const AnalysisView: React.FC<AnalysisViewProps> = ({ analysis, onBack, isSaved =
                     <span className="material-symbols-outlined text-sm">warning</span>
                     <h4 className="text-xs font-bold">风险提示</h4>
                   </div>
-                  <p className="text-[11px] text-red-400/80 leading-relaxed">{analysis.investmentAnalysis.riskAlert}</p>
+                  <div className="text-[11px] text-red-400/80 leading-relaxed">
+                    {renderSafeContent(analysis.investmentAnalysis.riskAlert)}
+                  </div>
                 </div>
               </div>
             </div>
@@ -220,9 +252,9 @@ const AnalysisView: React.FC<AnalysisViewProps> = ({ analysis, onBack, isSaved =
           {/* Clean Footer for the Analysis Report */}
           <div className="pt-16 pb-12 mt-10 border-t border-slate-200 bg-white -mx-5 px-10 flex flex-col items-center justify-center">
             <ReportLogo />
-            
+
             <div className="w-full h-px bg-gradient-to-r from-transparent via-slate-100 to-transparent my-8 opacity-50"></div>
-            
+
             <div className="text-center">
               <div className="text-slate-400 text-[10px] font-medium hover:text-slate-600 transition-colors cursor-default underline decoration-slate-200">
                 用户协议与隐私条款
@@ -233,14 +265,14 @@ const AnalysisView: React.FC<AnalysisViewProps> = ({ analysis, onBack, isSaved =
       </main>
 
       <div className="fixed bottom-0 left-0 right-0 p-5 bg-white/90 backdrop-blur-xl border-t border-slate-100 flex gap-4 max-w-md mx-auto z-50">
-        <button 
+        <button
           onClick={handleSavePoster}
           className="flex-1 flex items-center justify-center gap-2 bg-slate-50 border border-slate-100 text-slate-900 font-semibold py-4 rounded-xl active:scale-[0.98] transition-all"
         >
           <span className="material-symbols-outlined text-xl">wallpaper</span>
           保存海报
         </button>
-        <button 
+        <button
           onClick={handleShare}
           className="flex-1 flex items-center justify-center gap-2 bg-fuhung-blue text-white font-semibold py-4 rounded-xl shadow-lg shadow-fuhung-blue/20 active:scale-[0.98] transition-all"
         >

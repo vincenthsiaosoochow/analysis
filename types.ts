@@ -34,16 +34,16 @@ export interface ArtworkAnalysis {
   artistInfo?: {
     basics: string;
     marketPosition: string;
-    representativeWorks: string;
+    representativeWorks: string | string[];
     styleEvolution: string;
   };
   investmentAnalysis?: {
     rating: 'S' | 'A' | 'B' | 'C' | 'D';
     ratingReason: string;
     marketTrends: string;
-    collectionAdvice: string;
-    riskAlert: string;
-    alternatives: string;
+    collectionAdvice: string | Record<string, string>;
+    riskAlert: string | Record<string, string>;
+    alternatives: string | string[];
   };
 }
 
