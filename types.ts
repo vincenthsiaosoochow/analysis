@@ -6,7 +6,7 @@ export enum AppTab {
 }
 
 export interface ArtworkAnalysis {
-  id: string;
+  id: number;  // 数据库 ID，与后端一致
   title: string;
   artist: string;
   artistGender?: string;
@@ -21,7 +21,7 @@ export interface ArtworkAnalysis {
   authorAvatar?: string;
   isSaved?: boolean;
   likes?: number;
-  
+
   // New Expert Modules
   coreAnalysis?: {
     styleAndSchool: string;
@@ -48,7 +48,7 @@ export interface ArtworkAnalysis {
 }
 
 export interface GalleryItem {
-  id: string;
+  id: number;
   imageUrl: string;
   tag: string;
   authorName: string;
@@ -58,7 +58,7 @@ export interface GalleryItem {
 }
 
 export interface FeaturedItem {
-  id: string;
+  id: number;
   title: string;
   artist: string;
   tag: string;

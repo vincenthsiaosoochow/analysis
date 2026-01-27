@@ -146,7 +146,7 @@ const App: React.FC = () => {
     }
   };
 
-  const isSaved = (id: string) => {
+  const isSaved = (id: number) => {
     return myAnalyses.some(a => a.id === id);
   };
 
