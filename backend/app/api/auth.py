@@ -8,7 +8,7 @@ from app.database import get_db
 from app.schemas import UserRegister, UserLogin, PasswordReset, LoginResponse
 from app.services import register_user, login_user, reset_password
 
-router = APIRouter(prefix="/api/auth", tags=["认证"])
+router = APIRouter(prefix="/auth", tags=["认证"])
 
 
 @router.post("/register")

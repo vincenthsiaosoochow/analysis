@@ -25,19 +25,26 @@ def register_user(user_data: UserRegister, db: Session) -> dict:
     # 生成用户昵称：如果未提供姓名，使用 "用户xxxx"（手机号后4位）
     user_name = user_data.name if user_data.name else f"用户{user_data.phone[-4:]}"
     
-    # 创建新用户
-    new_user = User(
-        name=user_name,
-        phone=user_data.phone,
-        password_hash=hash_password(user_data.password),
-        avatar_url=f"https://picsum.photos/seed/{user_data.phone}/200/200"
-    )
-    
-    db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
-    
-    return {"success": True, "message": "注册成功"}
+    try:
+        # 创建新用户
+        new_user = User(
+            name=user_name,
+            phone=user_data.phone,
+            password_hash=hash_password(user_data.password),
+            avatar_url=f"https://picsum.photos/seed/{user_data.phone}/200/200"
+        )
+        
+        db.add(new_user)
+        db.commit()
+        db.refresh(new_user)
+        
+        return {"success": True, "message": "注册成功"}
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"注册失败: {str(e)}"
+        )
 
 
 def login_user(login_data: UserLogin, db: Session) -> dict:

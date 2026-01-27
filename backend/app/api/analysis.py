@@ -12,7 +12,7 @@ from app.schemas import ArtworkAnalysisResponse, AnalysisListResponse
 from app.utils import get_current_user
 from app.services import analyze_artwork_with_qianwen, save_uploaded_image
 
-router = APIRouter(prefix="/api/analysis", tags=["艺术品分析"])
+router = APIRouter(prefix="/analysis", tags=["艺术品分析"])
 
 
 @router.post("/analyze", response_model=ArtworkAnalysisResponse)
