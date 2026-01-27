@@ -26,11 +26,15 @@ def register_user(user_data: UserRegister, db: Session) -> dict:
     user_name = user_data.name if user_data.name else f"用户{user_data.phone[-4:]}"
     
     try:
+        # **关键修复**：强制截断密码到安全长度（远小于 bcrypt 的 72 字节限制）
+        # 这个截断发生在应用层，不依赖任何库配置
+        safe_password = user_data.password[:50] if len(user_data.password) > 50 else user_data.password
+        
         # 创建新用户
         new_user = User(
             name=user_name,
             phone=user_data.phone,
-            password_hash=hash_password(user_data.password),
+            password_hash=hash_password(safe_password),  # 使用安全截断后的密码
             avatar_url=f"https://picsum.photos/seed/{user_data.phone}/200/200"
         )
         
