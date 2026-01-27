@@ -2,36 +2,36 @@
 艺术品分析相关的 Pydantic 模型
 """
 from pydantic import BaseModel
-from typing import Optional, List
+from typing import Optional, List, Any, Dict, Union
 from datetime import datetime
 
 
 class CoreAnalysis(BaseModel):
     """核心艺术分析"""
-    styleAndSchool: str
-    colorUsage: str
-    brushworkTexture: str
-    compositionLayout: str
-    themeAndMood: str
-    artisticValue: str
+    styleAndSchool: Optional[str] = None
+    colorUsage: Optional[str] = None
+    brushworkTexture: Optional[str] = None
+    compositionLayout: Optional[str] = None
+    themeAndMood: Optional[str] = None
+    artisticValue: Optional[str] = None
 
 
 class ArtistInfo(BaseModel):
     """艺术家信息"""
-    basics: str
-    marketPosition: str
-    representativeWorks: str
-    styleEvolution: str
+    basics: Optional[str] = None
+    marketPosition: Optional[str] = None
+    representativeWorks: Optional[Any] = None  # Could be str or List[str]
+    styleEvolution: Optional[str] = None
 
 
 class InvestmentAnalysis(BaseModel):
     """投资价值分析"""
-    rating: str  # S/A/B/C/D
-    ratingReason: str
-    marketTrends: str
-    collectionAdvice: str
-    riskAlert: str
-    alternatives: str
+    rating: Optional[str] = None  # S/A/B/C/D
+    ratingReason: Optional[str] = None
+    marketTrends: Optional[str] = None
+    collectionAdvice: Optional[Any] = None  # Could be str or Dict
+    riskAlert: Optional[Any] = None  # Could be str or Dict
+    alternatives: Optional[Any] = None  # Could be str or List[str]
 
 
 class ArtworkAnalysisResponse(BaseModel):
