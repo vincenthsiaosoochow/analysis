@@ -156,6 +156,42 @@ def toggle_favorite(
         return {"success": True, "isSaved": True}
 
 
+@router.get("/{analysis_id}/image")
+def get_analysis_image(
+    analysis_id: int,
+    db: Session = Depends(get_db)
+):
+    """
+    获取艺术品图片流
+    """
+    analysis = db.query(ArtworkAnalysis).filter(ArtworkAnalysis.id == analysis_id).first()
+    if not analysis or not analysis.image_url:
+        # Return a 1x1 transparent pixel or 404
+        raise HTTPException(status_code=404, detail="Image not found")
+    
+    try:
+        # analysis.image_url is stored as "data:image/png;base64,....."
+        # We need to strip the header and decode
+        header, base64_str = analysis.image_url.split(",", 1)
+        import base64
+        image_data = base64.b64decode(base64_str)
+        
+        # Determine media type from header
+        media_type = "image/jpeg"
+        if "png" in header:
+            media_type = "image/png"
+        elif "webp" in header:
+            media_type = "image/webp"
+
+        from fastapi import Response
+        return Response(content=image_data, media_type=media_type, headers={
+            "Cache-Control": "public, max-age=31536000" # Cache for 1 year
+        })
+    except Exception as e:
+        print(f"Error serving image for {analysis_id}: {e}")
+        raise HTTPException(status_code=500, detail="Image processing error")
+
+
 def _build_analysis_response(
     analysis: ArtworkAnalysis,
     current_user: Optional[User],
@@ -176,6 +212,10 @@ def _build_analysis_response(
     # 获取作者信息
     author = db.query(User).filter(User.id == analysis.user_id).first()
     
+    # Use the image endpoint instead of raw base64
+    # This keeps the JSON payload small
+    image_endpoint = f"/api/analysis/{analysis.id}/image"
+    
     return ArtworkAnalysisResponse(
         id=analysis.id,
         title=analysis.title,
@@ -190,7 +230,7 @@ def _build_analysis_response(
         coreAnalysis=analysis.core_analysis,
         artistInfo=analysis.artist_info,
         investmentAnalysis=analysis.investment_analysis,
-        imageUrl=analysis.image_url,
+        imageUrl=image_endpoint,
         likes=analysis.likes,
         authorName=author.name if author else None,
         authorAvatar=author.avatar_url if author else None,
