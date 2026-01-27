@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.schemas import UserRegister, UserLogin, PasswordReset, LoginResponse
 from app.utils import get_current_user
+from app.services import register_user, login_user, reset_password
 
 router = APIRouter(prefix="/auth", tags=["认证"])
 
