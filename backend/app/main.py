@@ -11,8 +11,18 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 import os
 
+from sqlalchemy import text
+
 # 创建数据库表
-Base.metadata.create_all(bind=engine)
+try:
+    Base.metadata.create_all(bind=engine)
+    # 自动迁移：确保 image_url 是 LONGTEXT
+    with engine.connect() as conn:
+        conn.execute(text("ALTER TABLE artwork_analyses MODIFY image_url LONGTEXT COMMENT '作品图片URL';"))
+        conn.commit()
+    print("Database schema updated successfully.")
+except Exception as e:
+    print(f"Schema update/check warning: {e}")
 
 # 创建 FastAPI 应用
 app = FastAPI(
