@@ -11,7 +11,12 @@ from app.config import settings
 import hashlib
 
 # 密码加密上下文
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+# 配置 bcrypt__truncate_error=False 以自动截断超长密码而不是抛出错误
+pwd_context = CryptContext(
+    schemes=["bcrypt"],
+    deprecated="auto",
+    bcrypt__truncate_error=False  # 关键配置：自动截断超过72字节的密码
+)
 
 
 def _preprocess_password(password: str) -> str:
