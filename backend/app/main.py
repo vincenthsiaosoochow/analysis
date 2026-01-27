@@ -27,35 +27,37 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# 注册路由
-app.include_router(auth_router)
-app.include_router(analysis_router)
 
+# 创建子应用用于 API，确保路由独立
+api_app = FastAPI(title="FUHUNG API")
 
-from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
-import os
+# 注册 API 路由到子应用
+api_app.include_router(auth_router)
+api_app.include_router(analysis_router)
 
-# ... (existing code)
+@api_app.get("/")
+def api_root():
+    return {
+        "message": "FUHUNG AI 艺术分析 API",
+        "version": "1.0.0",
+        "docs": "/docs"
+    }
 
-# 注册路由
-app.include_router(auth_router)
-app.include_router(analysis_router)
+# 将 API 子应用挂载到 /api 路径
+app.mount("/api", api_app)
 
 # 挂载静态文件 (SPA支持)
 # 确保在 Docker 环境中 static 目录存在
 if os.path.exists("static"):
     app.mount("/assets", StaticFiles(directory="static/assets"), name="assets")
 
+    # SPA 路由处理 - 必须放在最后
     @app.get("/{full_path:path}")
     async def serve_spa(full_path: str):
         """
-        处理 SPA 路由：任何未匹配的 API 路径都返回 index.html
+        处理 SPA 路由：任何未匹配的路径都返回 index.html
+        注意：API 请求已被上面的 app.mount("/api", ...) 优先处理
         """
-        # 如果请求的是 API 或已存在的文件，不处理 (FastAPI 会自动优先匹配上面的路由和 mount)
-        if full_path.startswith("api"):
-            return {"error": "API endpoint not found"}
-        
         # 尝试返回对应的静态文件 (如 favicon.ico)
         file_path = os.path.join("static", full_path)
         if os.path.exists(file_path) and os.path.isfile(file_path):
@@ -69,5 +71,5 @@ else:
         return {
             "message": "FUHUNG AI 艺术分析 API (Frontend not built)",
             "version": "1.0.0",
-            "docs": "/docs"
+            "docs": "/api/docs"
         }
