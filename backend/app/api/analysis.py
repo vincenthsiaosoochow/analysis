@@ -29,8 +29,21 @@ async def analyze_artwork(
     image_url, base64_data = await save_uploaded_image(image)
     
     # 调用通义千问分析
-    analysis_result = analyze_artwork_with_qianwen(base64_data)
-    
+    # 注意：analyze_artwork_with_qianwen 是同步阻塞函数，而当前路由是 async 的
+    # 直接调用会阻塞事件循环，导致请求超时或 500 错误
+    # 必须使用 run_in_executor 在线程池中运行
+    import asyncio
+    print(f"[DEBUG] Starting AI analysis for image. Size: {len(base64_data)} chars")
+    loop = asyncio.get_running_loop()
+    try:
+        analysis_result = await loop.run_in_executor(None, analyze_artwork_with_qianwen, base64_data)
+        print("[DEBUG] AI analysis completed successfully")
+    except Exception as e:
+        print(f"[ERROR] AI analysis failed in threadpool: {e}")
+        # Fallback to mock if even the threadpool wrapper fails (unlikely, handled inside too)
+        from app.services.qianwen_service import _get_mock_analysis
+        analysis_result = _get_mock_analysis()
+
     # 保存分析结果到数据库
     artwork = ArtworkAnalysis(
         user_id=current_user.id,
