@@ -9,9 +9,9 @@ from datetime import datetime
 
 class UserRegister(BaseModel):
     """用户注册请求"""
-    name: str = Field(..., min_length=1, max_length=100, description="用户姓名")
     phone: str = Field(..., min_length=11, max_length=11, description="手机号")
     password: str = Field(..., min_length=6, max_length=50, description="密码")
+    name: Optional[str] = Field(None, max_length=100, description="用户姓名（可选）")
 
 
 class UserLogin(BaseModel):

@@ -22,9 +22,12 @@ def register_user(user_data: UserRegister, db: Session) -> dict:
             detail="该手机号已被注册"
         )
     
+    # 生成用户昵称：如果未提供姓名，使用 "用户xxxx"（手机号后4位）
+    user_name = user_data.name if user_data.name else f"用户{user_data.phone[-4:]}"
+    
     # 创建新用户
     new_user = User(
-        name=user_data.name,
+        name=user_name,
         phone=user_data.phone,
         password_hash=hash_password(user_data.password),
         avatar_url=f"https://picsum.photos/seed/{user_data.phone}/200/200"

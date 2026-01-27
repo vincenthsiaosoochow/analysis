@@ -38,7 +38,7 @@ const App: React.FC = () => {
 
   // Registration & Login State
   const [loginForm, setLoginForm] = useState({ phone: '', password: '' });
-  const [regForm, setRegForm] = useState({ name: '', phone: '', password: '', agreed: false });
+  const [regForm, setRegForm] = useState({ phone: '', password: '', agreed: false });
   const [resetForm, setResetForm] = useState({ phone: '', newPassword: '', confirmPassword: '' });
 
   // User Profile State
@@ -202,10 +202,6 @@ const App: React.FC = () => {
             <p className="text-slate-400 text-sm mt-4 font-medium uppercase tracking-widest">加入 FUHUNG 会员</p>
           </div>
           <form onSubmit={handleRegister} className="space-y-5">
-            <div className="space-y-1">
-              <label className="text-[10px] uppercase font-bold text-slate-400 ml-1">姓名</label>
-              <input className="w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-xl outline-none" placeholder="您的真实姓名" value={regForm.name} onChange={e => setRegForm({ ...regForm, name: e.target.value })} required />
-            </div>
             <div className="space-y-1">
               <label className="text-[10px] uppercase font-bold text-slate-400 ml-1">手机号</label>
               <input className="w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-xl outline-none" placeholder="11位手机号" value={regForm.phone} onChange={e => setRegForm({ ...regForm, phone: e.target.value })} required />
