@@ -57,6 +57,40 @@ const App: React.FC = () => {
     return combined.slice(0, 100);
   }, [myAnalyses]);
 
+  // Fetch Data on Mount
+  useEffect(() => {
+    const initApp = async () => {
+      const token = localStorage.getItem('auth_token');
+
+      // 1. 如果有 Token，尝试恢复会话
+      if (token) {
+        try {
+          const user = await authAPI.getMe();
+          setProfile({
+            name: user.name,
+            phone: user.phone,
+            avatar: user.avatar || profile.avatar
+          });
+          setIsLoggedIn(true);
+
+          // 2. 获取用户分析记录
+          try {
+            const analyses = await analysisAPI.getMyAnalyses();
+            setMyAnalyses(analyses);
+          } catch (err) {
+            console.error("Failed to fetch my analyses", err);
+          }
+        } catch (error) {
+          console.error("Session restore failed", error);
+          localStorage.removeItem('auth_token');
+          setIsLoggedIn(false);
+        }
+      }
+    };
+
+    initApp();
+  }, []); // Run once on mount
+
   // Filtered analyses for the discover tab
   const filteredDiscoverAnalyses = useMemo(() => {
     if (!searchQuery.trim()) return GLOBAL_ANALYSES;

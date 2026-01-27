@@ -93,6 +93,18 @@ export const authAPI = {
     },
 
     /**
+     * 获取当前用户信息
+     */
+    getMe: async () => {
+        return request<{
+            id: number;
+            name: string;
+            phone: string;
+            avatar: string;
+        }>('/api/auth/me');
+    },
+
+    /**
      * 登出
      */
     logout: () => {
