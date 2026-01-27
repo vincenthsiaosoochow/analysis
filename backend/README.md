@@ -14,9 +14,13 @@
 
 - **框架**: FastAPI 0.115+
 - **数据库**: MySQL (通过 SQLAlchemy ORM)
-- **AI**: 阿里云通义千问 API
+- **AI**: 阿里云通义千问 API (qwen-vl-plus)
 - **认证**: JWT (JSON Web Tokens)
 - **密码加密**: bcrypt
+
+## 通义千问集成
+
+使用阿里云通义千问 API（qwen-vl-plus，即通义千问 3-VL-Plus）进行图像分析。
 
 ## 本地开发
 

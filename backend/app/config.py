@@ -22,7 +22,7 @@ class Settings(BaseSettings):
     
     # 通义千问 API 配置
     DASHSCOPE_API_KEY: str = os.getenv("DASHSCOPE_API_KEY", "")
-    QIANWEN_MODEL: str = "qwen-vl-max"
+    QIANWEN_MODEL: str = "qwen-vl-plus"  # 通义千问 3-VL-Plus
     QIANWEN_BASE_URL: str = "https://dashscope.aliyuncs.com/compatible-mode/v1"
     
     # 文件上传配置

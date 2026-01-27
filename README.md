@@ -34,7 +34,7 @@ analysis/
 - FastAPI
 - SQLAlchemy
 - MySQL
-- 通义千问 API
+- 通义千问 API（qwen-vl-plus / 通义千问 3-VL-Plus）
 
 ## 本地开发
 
