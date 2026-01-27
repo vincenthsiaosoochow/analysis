@@ -80,8 +80,7 @@ def get_my_analyses(
 def discover_analyses(
     search: Optional[str] = Query(None, description="搜索关键词"),
     limit: int = Query(20, ge=1, le=100, description="返回数量"),
-    db: Session = Depends(get_db),
-    current_user: Optional[User] = None
+    db: Session = Depends(get_db)
 ):
     """
     获取公开的分析列表
@@ -101,7 +100,8 @@ def discover_analyses(
     # 按创建时间倒序
     analyses = query.order_by(ArtworkAnalysis.created_at.desc()).limit(limit).all()
     
-    result = [_build_analysis_response(a, current_user, db) for a in analyses]
+    # discover 接口不需要用户认证，传入 None
+    result = [_build_analysis_response(a, None, db) for a in analyses]
     
     return {"success": True, "analyses": result}
 
