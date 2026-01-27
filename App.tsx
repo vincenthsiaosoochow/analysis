@@ -28,7 +28,16 @@ const Logo: React.FC<{ size?: 'sm' | 'md' }> = ({ size = 'md' }) => {
 type AuthView = 'login' | 'register' | 'reset-password' | 'none';
 
 const App: React.FC = () => {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  // Initialize Auth State from Local Storage (Optimistic UI)
+  const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('auth_token'));
+
+  const savedProfile = localStorage.getItem('user_profile');
+  const initialProfile = savedProfile ? JSON.parse(savedProfile) : {
+    name: '张艺术',
+    phone: '138****0000',
+    avatar: 'https://picsum.photos/seed/user-main/200/200'
+  };
+
   const [currentTab, setCurrentTab] = useState<AppTab>(AppTab.HOME);
   const [analysis, setAnalysis] = useState<ArtworkAnalysis | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -42,16 +51,12 @@ const App: React.FC = () => {
   const [resetForm, setResetForm] = useState({ phone: '', newPassword: '', confirmPassword: '' });
 
   // User Profile State
-  const [profile, setProfile] = useState<UserProfile>({
-    name: '张艺术',
-    phone: '138****0000',
-    avatar: 'https://picsum.photos/seed/user-main/200/200'
-  });
+  const [profile, setProfile] = useState<UserProfile>(initialProfile);
 
   // Records state
   const [myAnalyses, setMyAnalyses] = useState<ArtworkAnalysis[]>([]);
   const [discoverAnalyses, setDiscoverAnalyses] = useState<ArtworkAnalysis[]>([]);
-  const [isInitializing, setIsInitializing] = useState(true);
+  // Removed isInitializing state
 
   // Data Refresh Helpers
   const refreshUserAnalyses = async () => {
@@ -75,31 +80,34 @@ const App: React.FC = () => {
   // Fetch Data on Mount
   useEffect(() => {
     const initApp = async () => {
-      // Always fetch public discover data
-      await refreshDiscover();
+      // Background fetch public data (non-blocking)
+      refreshDiscover();
 
       const token = localStorage.getItem('auth_token');
-      // 1. 如果有 Token，尝试恢复会话
+      // 1. 如果有 Token，尝试验证并更新最新的用户信息
       if (token) {
         try {
           const user = await authAPI.getMe();
-          setProfile({
+          const newProfile = {
             name: user.name,
             phone: user.phone,
             avatar: user.avatar || profile.avatar
-          });
+          };
+          setProfile(newProfile);
+          // Update cache
+          localStorage.setItem('user_profile', JSON.stringify(newProfile));
           setIsLoggedIn(true);
 
           // 2. 获取用户分析记录
           await refreshUserAnalyses();
         } catch (error) {
           console.error("Session restore failed", error);
+          // Only clear session if token is invalid (401/403), but for simplicity clear on any error during init
           localStorage.removeItem('auth_token');
+          localStorage.removeItem('user_profile');
           setIsLoggedIn(false);
         }
       }
-      // Initialization complete
-      setIsInitializing(false);
     };
 
     initApp();
@@ -154,15 +162,17 @@ const App: React.FC = () => {
     e.preventDefault();
     try {
       const result = await authAPI.login(loginForm);
-      setProfile({
+      const newProfile = {
         name: result.user.name,
         phone: result.user.phone,
         avatar: result.user.avatar || profile.avatar
-      });
+      };
+      setProfile(newProfile);
+      localStorage.setItem('user_profile', JSON.stringify(newProfile));
       setIsLoggedIn(true);
       setAuthView('none');
       // Login success: Fetch User Data!
-      await refreshUserAnalyses();
+      refreshUserAnalyses();
     } catch (error) {
       alert(error instanceof Error ? error.message : "登录失败，请检查手机号和密码");
     }
@@ -381,16 +391,7 @@ const App: React.FC = () => {
     </div>
   );
 
-  if (isInitializing) {
-    return (
-      <div className="fixed inset-0 bg-white flex flex-col items-center justify-center z-[500]">
-        <div className="size-16 rounded-2xl bg-[#001A41] flex items-center justify-center shadow-xl animate-pulse mb-6">
-          <span className="text-4xl text-white font-cal font-bold italic">F</span>
-        </div>
-        <p className="text-slate-400 text-xs font-bold tracking-widest uppercase">Loading Fuhung Art...</p>
-      </div>
-    );
-  }
+
 
   return (
     <div className="min-h-screen bg-white font-sans text-slate-900 overflow-x-hidden">
