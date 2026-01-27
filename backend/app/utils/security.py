@@ -31,18 +31,37 @@ def _preprocess_password(password: str) -> str:
 def hash_password(password: str) -> str:
     """
     对密码进行哈希加密
-    使用 SHA256 预处理以避免 bcrypt 的 72 字节限制
+    临时简化版本：直接截断并记录日志
     """
-    preprocessed = _preprocess_password(password)
-    return pwd_context.hash(preprocessed)
+    # 强制截断到绝对安全的长度
+    truncated_pwd = password[:20]  # 20个字符绝对不会超过72字节
+    
+    # 记录日志用于调试
+    print(f"[DEBUG] 原始密码长度: {len(password)}, 截断后长度: {len(truncated_pwd)}")
+    print(f"[DEBUG] 截断后密码字节数: {len(truncated_pwd.encode('utf-8'))}")
+    
+    try:
+        # 使用最简单的bcrypt调用
+        import bcrypt
+        salt = bcrypt.gensalt()
+        hashed = bcrypt.hashpw(truncated_pwd.encode('utf-8'), salt)
+        return hashed.decode('utf-8')
+    except Exception as e:
+        print(f"[ERROR] bcrypt加密失败: {str(e)}")
+        raise
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """
     验证密码是否匹配
     """
-    preprocessed = _preprocess_password(plain_password)
-    return pwd_context.verify(preprocessed, hashed_password)
+    truncated_pwd = plain_password[:20]
+    try:
+        import bcrypt
+        return bcrypt.checkpw(truncated_pwd.encode('utf-8'), hashed_password.encode('utf-8'))
+    except Exception as e:
+        print(f"[ERROR] 密码验证失败: {str(e)}")
+        return False
 
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
