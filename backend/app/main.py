@@ -7,6 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
 from app.database import engine, Base
 from app.api import auth_router, analysis_router
+import os
 
 # 创建数据库表
 Base.metadata.create_all(bind=engine)
