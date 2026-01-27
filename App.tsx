@@ -51,6 +51,7 @@ const App: React.FC = () => {
   // Records state
   const [myAnalyses, setMyAnalyses] = useState<ArtworkAnalysis[]>([]);
   const [discoverAnalyses, setDiscoverAnalyses] = useState<ArtworkAnalysis[]>([]);
+  const [isInitializing, setIsInitializing] = useState(true);
 
   // Data Refresh Helpers
   const refreshUserAnalyses = async () => {
@@ -97,6 +98,8 @@ const App: React.FC = () => {
           setIsLoggedIn(false);
         }
       }
+      // Initialization complete
+      setIsInitializing(false);
     };
 
     initApp();
@@ -377,6 +380,17 @@ const App: React.FC = () => {
       </footer>
     </div>
   );
+
+  if (isInitializing) {
+    return (
+      <div className="fixed inset-0 bg-white flex flex-col items-center justify-center z-[500]">
+        <div className="size-16 rounded-2xl bg-[#001A41] flex items-center justify-center shadow-xl animate-pulse mb-6">
+          <span className="text-4xl text-white font-cal font-bold italic">F</span>
+        </div>
+        <p className="text-slate-400 text-xs font-bold tracking-widest uppercase">Loading Fuhung Art...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-white font-sans text-slate-900 overflow-x-hidden">
