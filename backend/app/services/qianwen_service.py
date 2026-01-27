@@ -25,9 +25,17 @@ def analyze_artwork_with_qianwen(image_base64: str) -> Dict[str, Any]:
         return _get_mock_analysis()
     
     # 创建 OpenAI 客户端（通义千问兼容 OpenAI API）
+    print(f"[DEBUG] Initializing Qwen Client. Model: {settings.QIANWEN_MODEL}, Base URL: {settings.QIANWEN_BASE_URL}")
+    if settings.DASHSCOPE_API_KEY:
+        print(f"[DEBUG] API Key present: {settings.DASHSCOPE_API_KEY[:4]}***")
+    else:
+        print("[ERROR] DASHSCOPE_API_KEY is missing!")
+
     client = OpenAI(
         api_key=settings.DASHSCOPE_API_KEY,
-        base_url=settings.QIANWEN_BASE_URL
+        base_url=settings.QIANWEN_BASE_URL,
+        timeout=60.0,  # 设置明确的超时时间
+        max_retries=1
     )
     
     # 构建分析提示词
@@ -143,7 +151,10 @@ def analyze_artwork_with_qianwen(image_base64: str) -> Dict[str, Any]:
         return result
         
     except Exception as e:
-        print(f"通义千问 API 调用失败: {str(e)}")
+        import traceback
+        error_details = traceback.format_exc()
+        print(f"[ERROR] 通义千问 API 调用失败: {str(e)}")
+        print(f"[ERROR] 堆栈信息:\n{error_details}")
         # 如果 API 调用失败，返回模拟数据
         return _get_mock_analysis()
 
