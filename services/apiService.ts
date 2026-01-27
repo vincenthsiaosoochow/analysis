@@ -153,11 +153,16 @@ export const analysisAPI = {
     /**
      * 获取公开分析列表
      */
-    discover: async (search?: string) => {
+    /**
+     * 获取公开分析列表
+     */
+    discover: async (search?: string, limit: number = 20, sort: 'latest' | 'popular' = 'latest') => {
         const params = new URLSearchParams();
         if (search) params.append('search', search);
+        params.append('limit', limit.toString());
+        params.append('sort', sort);
 
-        const endpoint = `/api/analysis/discover${params.toString() ? '?' + params.toString() : ''}`;
+        const endpoint = `/api/analysis/discover?${params.toString()}`;
         const result = await request<{ success: boolean; analyses: any[] }>(endpoint);
         return result.analyses;
     },

@@ -56,6 +56,7 @@ const App: React.FC = () => {
   // Records state
   const [myAnalyses, setMyAnalyses] = useState<ArtworkAnalysis[]>([]);
   const [discoverAnalyses, setDiscoverAnalyses] = useState<ArtworkAnalysis[]>([]);
+  const [featuredAnalyses, setFeaturedAnalyses] = useState<ArtworkAnalysis[]>([]);
   // Removed isInitializing state
 
   // Data Refresh Helpers
@@ -70,10 +71,19 @@ const App: React.FC = () => {
 
   const refreshDiscover = async () => {
     try {
-      const analyses = await analysisAPI.discover();
+      const analyses = await analysisAPI.discover(undefined, 20, 'latest');
       setDiscoverAnalyses(analyses);
     } catch (err) {
       console.error("Failed to fetch discover analyses", err);
+    }
+  };
+
+  const refreshFeatured = async () => {
+    try {
+      const analyses = await analysisAPI.discover(undefined, 20, 'popular');
+      setFeaturedAnalyses(analyses);
+    } catch (err) {
+      console.error("Failed to fetch featured analyses", err);
     }
   };
 
@@ -82,6 +92,7 @@ const App: React.FC = () => {
     const initApp = async () => {
       // Background fetch public data (non-blocking)
       refreshDiscover();
+      refreshFeatured();
 
       const token = localStorage.getItem('auth_token');
       // 1. 如果有 Token，尝试验证并更新最新的用户信息
@@ -360,7 +371,7 @@ const App: React.FC = () => {
         </div>
 
         <div className="masonry-container">
-          {GLOBAL_ANALYSES.slice(0, 4).map((art) => (
+          {featuredAnalyses.map((art) => (
             <div key={art.id} className="masonry-item group cursor-pointer" onClick={() => setAnalysis(art)}>
               <div className="relative rounded-2xl overflow-hidden border border-slate-100 shadow-sm transition-transform active:scale-95 mb-2 bg-slate-50">
                 <img

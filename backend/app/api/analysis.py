@@ -101,11 +101,12 @@ def get_my_analyses(
 def discover_analyses(
     search: Optional[str] = Query(None, description="搜索关键词"),
     limit: int = Query(20, ge=1, le=100, description="返回数量"),
+    sort: str = Query("latest", regex="^(latest|popular)$", description="排序方式"),
     db: Session = Depends(get_db)
 ):
     """
     获取公开的分析列表
-    支持搜索和分页
+    支持搜索、分页和排序
     """
     query = db.query(ArtworkAnalysis)
     
@@ -118,8 +119,13 @@ def discover_analyses(
             (ArtworkAnalysis.style.like(search_pattern))
         )
     
-    # 按创建时间倒序
-    analyses = query.order_by(ArtworkAnalysis.created_at.desc()).limit(limit).all()
+    # 排序
+    if sort == "popular":
+        query = query.order_by(ArtworkAnalysis.likes.desc())
+    else:
+        query = query.order_by(ArtworkAnalysis.created_at.desc())
+        
+    analyses = query.limit(limit).all()
     
     # discover 接口不需要用户认证，传入 None
     result = [_build_analysis_response(a, None, db) for a in analyses]
