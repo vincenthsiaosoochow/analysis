@@ -52,7 +52,7 @@ export const authAPI = {
     /**
      * 用户注册
      */
-    register: async (data: { name: string; phone: string; password: string }) => {
+    register: async (data: { phone: string; password: string; name?: string }) => {
         return request('/api/auth/register', {
             method: 'POST',
             body: JSON.stringify(data),
