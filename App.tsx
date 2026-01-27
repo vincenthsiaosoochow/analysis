@@ -473,32 +473,31 @@ const App: React.FC = () => {
                   <button onClick={() => setAuthView('login')} className="w-full bg-primary text-white py-4 rounded-xl font-bold shadow-lg shadow-primary/20">立即登录</button>
                 ) : (
                   <>
-                    <div className="bg-white border border-slate-100 rounded-2xl overflow-hidden shadow-sm">
-                      <div className="p-4 border-b border-slate-50 flex items-center justify-between">
-                        <span className="flex items-center gap-3 font-bold text-slate-800"><span className="material-symbols-outlined text-primary">history</span>我的分析</span>
-                        <span className="text-[10px] font-bold text-slate-400 uppercase bg-slate-50 px-2 py-0.5 rounded-full">{myAnalyses.length}</span>
+                    <div className="mt-8 mb-8">
+                      <div className="flex items-center gap-2 mb-4 px-2">
+                        <span className="material-symbols-outlined text-primary">collections_bookmark</span>
+                        <h3 className="text-lg font-bold text-slate-800">我的收藏</h3>
+                        <span className="text-[10px] font-bold text-slate-400 uppercase bg-slate-100 px-2 py-0.5 rounded-full">{myAnalyses.length}</span>
                       </div>
-                      <div className="max-h-[320px] overflow-y-auto no-scrollbar">
-                        {myAnalyses.length === 0 ? (
-                          <div className="p-10 text-center space-y-2">
-                            <span className="material-symbols-outlined text-slate-200 text-4xl">folder_open</span>
-                            <p className="text-xs text-slate-400">暂无收藏或分析记录</p>
-                          </div>
-                        ) : (
-                          <div className="divide-y divide-slate-50">
-                            {myAnalyses.map(art => (
-                              <button key={art.id} onClick={() => setAnalysis(art)} className="w-full flex items-center gap-4 p-4 hover:bg-slate-50 transition-colors text-left">
-                                <img src={art.imageUrl} className="size-12 rounded-lg object-cover bg-slate-100" />
-                                <div className="flex-1 min-w-0">
-                                  <p className="text-sm font-bold text-slate-900 truncate">{art.title}</p>
-                                  <p className="text-[10px] text-slate-400 truncate">{art.artist}</p>
-                                </div>
-                                <span className="material-symbols-outlined text-slate-300">chevron_right</span>
-                              </button>
-                            ))}
-                          </div>
-                        )}
-                      </div>
+
+                      {myAnalyses.length === 0 ? (
+                        <div className="p-10 text-center space-y-2 bg-slate-50 rounded-2xl border border-slate-100 border-dashed">
+                          <span className="material-symbols-outlined text-slate-300 text-4xl">folder_open</span>
+                          <p className="text-xs text-slate-400">暂无收藏或分析记录</p>
+                        </div>
+                      ) : (
+                        <div className="masonry-container px-1">
+                          {myAnalyses.map(item => (
+                            <div key={item.id} className="masonry-item bg-white rounded-2xl overflow-hidden border border-slate-100 shadow-sm transition-transform active:scale-[0.98] mb-3" onClick={() => setAnalysis(item)}>
+                              <img src={item.imageUrl} className="w-full h-auto object-cover" crossOrigin="anonymous" loading="lazy" />
+                              <div className="p-3">
+                                <p className="text-xs font-bold truncate text-slate-900">{item.title}</p>
+                                <p className="text-[10px] text-slate-400 truncate">{item.artist}</p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                     <button onClick={() => { authAPI.logout(); setIsLoggedIn(false); }} className="w-full py-4 text-red-500 font-bold border border-red-50 px-4 rounded-xl active:bg-red-50/50 transition-colors">退出登录</button>
                   </>
