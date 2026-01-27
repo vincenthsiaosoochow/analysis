@@ -8,6 +8,7 @@ from app.config import settings
 from app.database import engine, Base
 from app.api import auth_router, analysis_router
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 import os
 
 # 创建数据库表
