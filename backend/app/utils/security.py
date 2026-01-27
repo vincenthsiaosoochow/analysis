@@ -8,32 +8,36 @@ from jose import JWTError, jwt
 from passlib.context import CryptContext
 
 from app.config import settings
+import hashlib
 
 # 密码加密上下文
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
+def _preprocess_password(password: str) -> str:
+    """
+    预处理密码以避免 bcrypt 的 72 字节限制
+    使用 SHA256 将任意长度的密码转换为固定长度的十六进制字符串
+    """
+    # SHA256 哈希后转为十六进制字符串（64个字符，远小于72字节）
+    return hashlib.sha256(password.encode('utf-8')).hexdigest()
+
+
 def hash_password(password: str) -> str:
     """
     对密码进行哈希加密
-    处理 bcrypt 的 72 字节限制
+    使用 SHA256 预处理以避免 bcrypt 的 72 字节限制
     """
-    # bcrypt 只接受最多 72 字节的输入
-    # 直接截断到 72 字节以避免错误
-    password_bytes = password.encode('utf-8')[:72]
-    # 将截断后的字节转回字符串，忽略可能的解码错误
-    safe_password = password_bytes.decode('utf-8', errors='ignore')
-    return pwd_context.hash(safe_password)
+    preprocessed = _preprocess_password(password)
+    return pwd_context.hash(preprocessed)
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """
     验证密码是否匹配
     """
-    # 同样的截断逻辑
-    password_bytes = plain_password.encode('utf-8')[:72]
-    safe_password = password_bytes.decode('utf-8', errors='ignore')
-    return pwd_context.verify(safe_password, hashed_password)
+    preprocessed = _preprocess_password(plain_password)
+    return pwd_context.verify(preprocessed, hashed_password)
 
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
