@@ -50,18 +50,34 @@ const App: React.FC = () => {
 
   // Records state
   const [myAnalyses, setMyAnalyses] = useState<ArtworkAnalysis[]>([]);
+  const [discoverAnalyses, setDiscoverAnalyses] = useState<ArtworkAnalysis[]>([]);
 
-  // Combine global and user analyses for discovery, up to 100 items
-  const allDiscoverableAnalyses = useMemo(() => {
-    const combined = [...myAnalyses, ...GLOBAL_ANALYSES];
-    return combined.slice(0, 100);
-  }, [myAnalyses]);
+  // Data Refresh Helpers
+  const refreshUserAnalyses = async () => {
+    try {
+      const analyses = await analysisAPI.getMyAnalyses();
+      setMyAnalyses(analyses);
+    } catch (err) {
+      console.error("Failed to fetch my analyses", err);
+    }
+  };
+
+  const refreshDiscover = async () => {
+    try {
+      const analyses = await analysisAPI.discover();
+      setDiscoverAnalyses(analyses);
+    } catch (err) {
+      console.error("Failed to fetch discover analyses", err);
+    }
+  };
 
   // Fetch Data on Mount
   useEffect(() => {
     const initApp = async () => {
-      const token = localStorage.getItem('auth_token');
+      // Always fetch public discover data
+      await refreshDiscover();
 
+      const token = localStorage.getItem('auth_token');
       // 1. 如果有 Token，尝试恢复会话
       if (token) {
         try {
@@ -74,12 +90,7 @@ const App: React.FC = () => {
           setIsLoggedIn(true);
 
           // 2. 获取用户分析记录
-          try {
-            const analyses = await analysisAPI.getMyAnalyses();
-            setMyAnalyses(analyses);
-          } catch (err) {
-            console.error("Failed to fetch my analyses", err);
-          }
+          await refreshUserAnalyses();
         } catch (error) {
           console.error("Session restore failed", error);
           localStorage.removeItem('auth_token');
@@ -93,15 +104,20 @@ const App: React.FC = () => {
 
   // Filtered analyses for the discover tab
   const filteredDiscoverAnalyses = useMemo(() => {
-    if (!searchQuery.trim()) return GLOBAL_ANALYSES;
+    // Determine source: if search query exists or we have API data, use it.
+    // Otherwise fallback to GLOBAL constants only if API is empty (though API should return data)
+    let source = discoverAnalyses.length > 0 ? discoverAnalyses : GLOBAL_ANALYSES;
+
+    if (!searchQuery.trim()) return source;
+
     const query = searchQuery.toLowerCase();
-    return GLOBAL_ANALYSES.filter(
+    return source.filter(
       item =>
         item.title.toLowerCase().includes(query) ||
         item.artist.toLowerCase().includes(query) ||
         item.style.toLowerCase().includes(query)
     );
-  }, [searchQuery]);
+  }, [searchQuery, discoverAnalyses]);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -142,6 +158,8 @@ const App: React.FC = () => {
       });
       setIsLoggedIn(true);
       setAuthView('none');
+      // Login success: Fetch User Data!
+      await refreshUserAnalyses();
     } catch (error) {
       alert(error instanceof Error ? error.message : "登录失败，请检查手机号和密码");
     }
