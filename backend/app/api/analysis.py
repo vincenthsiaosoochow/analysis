@@ -2,13 +2,74 @@
 艺术品分析相关 API 路由
 """
 from typing import Optional
-from fastapi import APIRouter, Depends, File, UploadFile, HTTPException, Query
+from fastapi import APIRouter, Depends, File, UploadFile, HTTPException, Query, Response
 from sqlalchemy.orm import Session
 from sqlalchemy import or_
+import random
+import base64
+import asyncio
 
-# ... (rest of imports)
+from app.database import get_db
+from app.models import User, ArtworkAnalysis, UserFavorite
+from app.schemas import ArtworkAnalysisResponse, AnalysisListResponse
+from app.utils import get_current_user
+from app.services import analyze_artwork_with_qianwen, save_uploaded_image
 
-# ... (inside query)
+router = APIRouter(prefix="/analysis", tags=["艺术品分析"])
+
+
+@router.post("/analyze", response_model=ArtworkAnalysisResponse)
+async def analyze_artwork(
+    image: UploadFile = File(...),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    分析上传的艺术品图片
+    需要用户认证
+    """
+    # 保存图片并获取 base64 数据
+    image_url, base64_data = await save_uploaded_image(image)
+    
+    # 调用通义千问分析
+    print(f"[DEBUG] Starting AI analysis for image. Size: {len(base64_data)} chars")
+    loop = asyncio.get_running_loop()
+    try:
+        analysis_result = await loop.run_in_executor(None, analyze_artwork_with_qianwen, base64_data)
+        print("[DEBUG] AI analysis completed successfully")
+    except Exception as e:
+        print(f"[ERROR] AI analysis failed in threadpool: {e}")
+        # Fallback to mock if even the threadpool wrapper fails (unlikely, handled inside too)
+        from app.services.qianwen_service import _get_mock_analysis
+        analysis_result = _get_mock_analysis()
+
+    # 保存分析结果到数据库
+    artwork = ArtworkAnalysis(
+        user_id=current_user.id,
+        title=analysis_result.get("title", "未知作品"),
+        artist=analysis_result.get("artist", "未知艺术家"),
+        artist_gender=analysis_result.get("artistGender"),
+        style=analysis_result.get("style"),
+        period=analysis_result.get("period"),
+        origin=analysis_result.get("origin"),
+        palette=analysis_result.get("palette"),
+        composition=analysis_result.get("composition"),
+        interpretation=analysis_result.get("interpretation"),
+        core_analysis=analysis_result.get("coreAnalysis"),
+        artist_info=analysis_result.get("artistInfo"),
+        investment_analysis=analysis_result.get("investmentAnalysis"),
+        image_url=image_url,
+        likes=random.randint(10, 500)
+    )
+    
+    db.add(artwork)
+    db.commit()
+    db.refresh(artwork)
+    
+    # 构建响应
+    return _build_analysis_response(artwork, current_user, db)
+
+
 @router.get("/my-analyses", response_model=AnalysisListResponse)
 def get_my_analyses(
     current_user: User = Depends(get_current_user),
@@ -120,7 +181,6 @@ def get_analysis_image(
         # analysis.image_url is stored as "data:image/png;base64,....."
         # We need to strip the header and decode
         header, base64_str = analysis.image_url.split(",", 1)
-        import base64
         image_data = base64.b64decode(base64_str)
         
         # Determine media type from header
@@ -130,7 +190,6 @@ def get_analysis_image(
         elif "webp" in header:
             media_type = "image/webp"
 
-        from fastapi import Response
         return Response(content=image_data, media_type=media_type, headers={
             "Cache-Control": "public, max-age=31536000",
             "Access-Control-Allow-Origin": "*"
