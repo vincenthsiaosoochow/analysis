@@ -4,7 +4,8 @@
  */
 
 // API 基础 URL
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+// 简化架构：直接通过相对路径访问后端（由后端托管前端时自动处理）
+const API_BASE_URL = '/api';
 
 /**
  * 通用请求函数
