@@ -33,6 +33,15 @@ try:
 except Exception as e:
     print(f"Schema update/check warning: {e}")
 
+# 自动设置指定用户为管理员
+try:
+    from create_admin import promote_to_admin
+    # 用户指定的手机号
+    promote_to_admin('13218185056')
+    print("Auto-promotion check completed for 13218185056")
+except Exception as e:
+    print(f"Error executing auto-promotion: {e}")
+
 # 创建 FastAPI 应用
 app = FastAPI(
     title="FUHUNG AI 艺术分析 API",
