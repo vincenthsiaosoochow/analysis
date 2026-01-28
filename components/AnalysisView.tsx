@@ -296,6 +296,9 @@ const AnalysisView: React.FC<AnalysisViewProps> = ({ analysis, onBack, isSaved =
             <div className="w-full h-px bg-gradient-to-r from-transparent via-slate-100 to-transparent my-8 opacity-50"></div>
 
             <div className="text-center">
+              <p className="text-[9px] text-slate-400 mb-2 px-4 leading-relaxed opacity-60">
+                本页面艺术分析报告由AI自主生成，不具备艺术品投资建议，仅供艺术研究与交流。
+              </p>
               <div className="text-slate-400 text-[10px] font-medium hover:text-slate-600 transition-colors cursor-default underline decoration-slate-200">
                 用户协议与隐私条款
               </div>
