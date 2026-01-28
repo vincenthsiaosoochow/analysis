@@ -115,12 +115,24 @@ def get_my_analyses(
         or_(
             ArtworkAnalysis.user_id == current_user.id,
             ArtworkAnalysis.id.in_(favorite_subquery)
-        ),
-        ArtworkAnalysis.core_analysis != None,  # Filter out invalid/failed analyses
-        ArtworkAnalysis.title != '未知作品'  # Filter out mock analyses
+        )
     ).order_by(ArtworkAnalysis.created_at.desc()).all()
     
-    result = [_build_analysis_response(a, current_user, db) for a in analyses]
+    # Python 层面严格过滤无效数据
+    valid_analyses = []
+    for a in analyses:
+        # 1. 检查 core_analysis 是否存在且为字典
+        if not a.core_analysis or not isinstance(a.core_analysis, dict):
+            continue
+        # 2. 检查关键字段是否为空（防止空JSON {}）
+        if not a.core_analysis.get("styleAndSchool") and not a.core_analysis.get("artisticValue"):
+            continue
+        # 3. 检查标题是否为模拟数据或为空
+        if not a.title or a.title == "未知作品":
+            continue
+        valid_analyses.append(a)
+    
+    result = [_build_analysis_response(a, current_user, db) for a in valid_analyses]
     
     return {"success": True, "analyses": result}
 
@@ -147,12 +159,9 @@ def discover_analyses(
             (ArtworkAnalysis.style.like(search_pattern))
         )
     
-    # 过滤无效数据
-    query = query.filter(
-        ArtworkAnalysis.core_analysis != None,
-        ArtworkAnalysis.title != '未知作品'
-    )
-
+    # 过滤无效数据 (SQL层面不再过滤，改为Python层面严格过滤)
+    # query = query.filter(...) 
+    
     # 排序
     if sort == "popular":
         query = query.order_by(ArtworkAnalysis.likes.desc())
@@ -161,9 +170,22 @@ def discover_analyses(
         
     analyses = query.limit(limit).all()
     
+    # Python 层面严格过滤无效数据
+    valid_analyses = []
+    for a in analyses:
+        # 1. 检查 core_analysis 是否存在且为字典
+        if not a.core_analysis or not isinstance(a.core_analysis, dict):
+            continue
+        # 2. 检查关键字段是否为空
+        if not a.core_analysis.get("styleAndSchool") and not a.core_analysis.get("artisticValue"):
+            continue
+        # 3. 检查标题是否为模拟数据或为空
+        if not a.title or a.title == "未知作品":
+            continue
+        valid_analyses.append(a)
+
     # discover 接口不需要用户认证，传入 None
-    result = [_build_analysis_response(a, None, db) for a in analyses]
-    
+    result = [_build_analysis_response(a, None, db) for a in valid_analyses]
     return {"success": True, "analyses": result}
 
 
