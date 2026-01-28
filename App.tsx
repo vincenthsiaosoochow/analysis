@@ -484,7 +484,15 @@ const App: React.FC = () => {
                 <img src={profile.avatar} className="size-20 rounded-full border-4 border-slate-50 shadow-inner" />
                 <div>
                   <h2 className="text-2xl font-bold">{isLoggedIn ? profile.name : '游客用户'}</h2>
-                  <p className="text-slate-400 text-sm">{isLoggedIn ? profile.phone : '登录后解锁更多功能'}</p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-slate-400 text-sm">{isLoggedIn ? profile.phone : '登录后解锁更多功能'}</p>
+                    {isLoggedIn && (
+                      <span className={`text-[10px] px-2 py-0.5 rounded font-bold uppercase ${!!profile.is_admin ? 'bg-fuhung-blue text-white' : 'bg-slate-100 text-slate-400'
+                        }`}>
+                        {!!profile.is_admin ? 'ADMIN' : 'MEMBER'}
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
               <div className="space-y-4">
