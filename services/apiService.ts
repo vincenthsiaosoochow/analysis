@@ -175,14 +175,18 @@ export const analysisAPI = {
         return result.analyses;
     },
 
-    /**
-     * 收藏/取消收藏
-     */
     toggleFavorite: async (analysisId: number) => {
         return request<{ success: boolean; isSaved: boolean }>(
             `/api/analysis/${analysisId}/favorite`,
             { method: 'POST' }
         );
+    },
+
+    /**
+     * 获取单个分析详情
+     */
+    getAnalysisById: async (analysisId: number) => {
+        return request<any>(`/api/analysis/${analysisId}`);
     },
 };
 

@@ -43,7 +43,7 @@ class ArtworkAnalysisResponse(BaseModel):
     style: Optional[str] = None
     period: Optional[str] = None
     origin: Optional[str] = None
-    palette: Optional[List[str]] = None
+    palette: Optional[Any] = None
     composition: Optional[str] = None
     interpretation: Optional[str] = None
     coreAnalysis: Optional[CoreAnalysis] = None

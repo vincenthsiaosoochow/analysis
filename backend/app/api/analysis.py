@@ -282,6 +282,25 @@ def toggle_favorite(
         return {"success": True, "isSaved": True}
 
 
+@router.get("/{analysis_id}", response_model=ArtworkAnalysisResponse)
+def get_analysis_details(
+    analysis_id: int,
+    db: Session = Depends(get_db),
+    current_user: Optional[User] = Depends(get_current_user_optional)
+):
+    """
+    获取单个艺术品分析详情
+    """
+    analysis = db.query(ArtworkAnalysis).filter(ArtworkAnalysis.id == analysis_id).first()
+    if not analysis:
+        raise HTTPException(status_code=404, detail="分析报告不存在")
+        
+    if analysis.is_deleted:
+        raise HTTPException(status_code=404, detail="该分析报告已下架")
+        
+    return _build_analysis_response(analysis, current_user, db)
+
+
 @router.get("/{analysis_id}/image")
 def get_analysis_image(
     analysis_id: int,
