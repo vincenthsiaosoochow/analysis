@@ -7,6 +7,44 @@ import AnalysisView from './components/AnalysisView';
 import AdminDashboard from './pages/AdminDashboard';
 import { authAPI, analysisAPI } from './services/apiService';
 
+// Error Boundary Component
+class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean; error: Error | null }> {
+  constructor(props: { children: React.ReactNode }) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error("Uncaught error:", error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="p-8 text-center">
+          <h2 className="text-xl font-bold text-red-500 mb-2">页面加载出错</h2>
+          <p className="text-slate-500 text-sm mb-4">抱歉，显示分析报告时遇到了问题。</p>
+          <div className="bg-slate-100 p-4 rounded text-left text-xs text-red-800 overflow-auto max-h-40 mb-4">
+            {this.state.error?.toString()}
+          </div>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-primary text-white rounded-lg"
+          >
+            刷新重试
+          </button>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
 const Logo: React.FC<{ size?: 'sm' | 'md' }> = ({ size = 'md' }) => {
   const iconSize = size === 'md' ? 'size-11' : 'size-9';
   const fSize = size === 'md' ? 'text-2xl' : 'text-xl';
@@ -410,13 +448,15 @@ const App: React.FC = () => {
   return (
     <div className="min-h-screen bg-white font-sans text-slate-900 overflow-x-hidden">
       {analysis ? (
-        <AnalysisView
-          analysis={analysis}
-          onBack={() => setAnalysis(null)}
-          isSaved={isSaved(analysis.id)}
-          onToggleSave={() => toggleSaveAnalysis(analysis)}
-          onLogin={() => setAuthView('login')}
-        />
+        <ErrorBoundary>
+          <AnalysisView
+            analysis={analysis}
+            onBack={() => setAnalysis(null)}
+            isSaved={isSaved(analysis.id)}
+            onToggleSave={() => toggleSaveAnalysis(analysis)}
+            onLogin={() => setAuthView('login')}
+          />
+        </ErrorBoundary>
       ) : (
         <>
           {currentTab === AppTab.HOME && renderHome()}
