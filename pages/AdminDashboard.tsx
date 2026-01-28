@@ -35,6 +35,7 @@ const AdminDashboard: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [hoveredId, setHoveredId] = useState<number | null>(null);
     const [selectedIds, setSelectedIds] = useState<number[]>([]);
+    const [filterStatus, setFilterStatus] = useState<'valid' | 'deleted' | 'all'>('valid');
 
     // Reset page when tab changes
     useEffect(() => {
@@ -43,7 +44,7 @@ const AdminDashboard: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         // fetchData will be triggered by the page change effect below
         // or we can call it explicitly if page is already 1
         if (page === 1) fetchData(1);
-    }, [activeTab]);
+    }, [activeTab, filterStatus]); // Add filterStatus dependecy
 
     // Fetch data when page changes
     useEffect(() => {
@@ -59,7 +60,7 @@ const AdminDashboard: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                 setUsers(res.items);
                 setTotal(res.total);
             } else {
-                const res = await adminService.getAnalyses(pageNum, 20, 'all');
+                const res = await adminService.getAnalyses(pageNum, 20, filterStatus);
                 setAnalyses(res.items);
                 setTotal(res.total);
             }
@@ -221,6 +222,30 @@ const AdminDashboard: React.FC<{ onBack: () => void }> = ({ onBack }) => {
 
                 {activeTab === 'artworks' && (
                     <div className="space-y-4">
+                        <div className="flex justify-end gap-2 mb-2">
+                            {/* Status Filter Dropdown */}
+                            <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-lg p-1">
+                                <button
+                                    onClick={() => setFilterStatus('valid')}
+                                    className={`px-3 py-1.5 text-xs font-medium rounded ${filterStatus === 'valid' ? 'bg-fuhung-blue text-white' : 'text-slate-500 hover:bg-slate-100'}`}
+                                >
+                                    正常
+                                </button>
+                                <button
+                                    onClick={() => setFilterStatus('deleted')}
+                                    className={`px-3 py-1.5 text-xs font-medium rounded ${filterStatus === 'deleted' ? 'bg-red-500 text-white' : 'text-slate-500 hover:bg-slate-100'}`}
+                                >
+                                    回收站
+                                </button>
+                                <button
+                                    onClick={() => setFilterStatus('all')}
+                                    className={`px-3 py-1.5 text-xs font-medium rounded ${filterStatus === 'all' ? 'bg-slate-800 text-white' : 'text-slate-500 hover:bg-slate-100'}`}
+                                >
+                                    全部
+                                </button>
+                            </div>
+                        </div>
+
                         <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
                             {/* Batch Action Toolbar */}
                             {selectedIds.length > 0 && (
