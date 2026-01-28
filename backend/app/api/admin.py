@@ -163,3 +163,28 @@ def delete_analysis(
     db.commit()
     
     return {"success": True, "message": "分析报告已下架"}
+
+
+from pydantic import BaseModel
+
+class BatchDeleteRequest(BaseModel):
+    ids: List[int]
+
+@router.post("/analyses/batch-delete")
+def batch_delete_analyses(
+    request: BatchDeleteRequest,
+    db: Session = Depends(get_db),
+    admin: User = Depends(get_current_admin)
+):
+    """批量软删除分析报告"""
+    if not request.ids:
+        return {"success": False, "message": "未选择任何项目"}
+        
+    # 批量更新
+    db.query(ArtworkAnalysis).filter(ArtworkAnalysis.id.in_(request.ids)).update(
+        {"is_deleted": 1}, 
+        synchronize_session=False
+    )
+    db.commit()
+    
+    return {"success": True, "message": f"成功下架 {len(request.ids)} 个分析报告"}

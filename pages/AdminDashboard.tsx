@@ -34,10 +34,12 @@ const AdminDashboard: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     const [loading, setLoading] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [hoveredId, setHoveredId] = useState<number | null>(null);
+    const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
     // Reset page when tab changes
     useEffect(() => {
         setPage(1);
+        setSelectedIds([]);
         // fetchData will be triggered by the page change effect below
         // or we can call it explicitly if page is already 1
         if (page === 1) fetchData(1);
@@ -46,6 +48,7 @@ const AdminDashboard: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     // Fetch data when page changes
     useEffect(() => {
         fetchData(page);
+        setSelectedIds([]);
     }, [page]);
 
     const fetchData = async (pageNum: number) => {
@@ -91,6 +94,34 @@ const AdminDashboard: React.FC<{ onBack: () => void }> = ({ onBack }) => {
             fetchData(page);
         } catch (error) {
             alert("删除失败");
+        }
+    };
+
+    const handleBatchDelete = async () => {
+        if (selectedIds.length === 0) return;
+        if (!window.confirm(`确定要批量删除选中的 ${selectedIds.length} 个分析报告吗？`)) return;
+
+        try {
+            await adminService.batchDeleteAnalyses(selectedIds);
+            alert("批量删除成功");
+            fetchData(page);
+            setSelectedIds([]);
+        } catch (error) {
+            alert("批量删除失败");
+        }
+    };
+
+    const toggleSelection = (id: number) => {
+        setSelectedIds(prev =>
+            prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+        );
+    };
+
+    const toggleAll = () => {
+        if (selectedIds.length === analyses.length) {
+            setSelectedIds([]);
+        } else {
+            setSelectedIds(analyses.map(a => a.id));
         }
     };
 
@@ -191,9 +222,30 @@ const AdminDashboard: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                 {activeTab === 'artworks' && (
                     <div className="space-y-4">
                         <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+                            {/* Batch Action Toolbar */}
+                            {selectedIds.length > 0 && (
+                                <div className="px-6 py-3 bg-red-50 border-b border-red-100 flex items-center justify-between">
+                                    <span className="text-sm text-red-700 font-medium">已选择 {selectedIds.length} 个项目</span>
+                                    <button
+                                        onClick={handleBatchDelete}
+                                        className="px-4 py-1.5 bg-red-600 text-white rounded-lg text-sm font-bold shadow-sm hover:bg-red-700 transition-colors"
+                                    >
+                                        批量删除
+                                    </button>
+                                </div>
+                            )}
+
                             <table className="w-full text-sm text-left">
                                 <thead className="bg-slate-50 text-slate-500 font-medium">
                                     <tr>
+                                        <th className="px-6 py-3 w-10">
+                                            <input
+                                                type="checkbox"
+                                                className="rounded border-slate-300"
+                                                checked={analyses.length > 0 && selectedIds.length === analyses.length}
+                                                onChange={toggleAll}
+                                            />
+                                        </th>
                                         <th className="px-6 py-3">ID</th>
                                         <th className="px-6 py-3">预览</th>
                                         <th className="px-6 py-3">标题/艺术家</th>
@@ -205,7 +257,15 @@ const AdminDashboard: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                                 </thead>
                                 <tbody className="divide-y divide-slate-100">
                                     {analyses.map((item) => (
-                                        <tr key={item.id} className="hover:bg-slate-50">
+                                        <tr key={item.id} className={`hover:bg-slate-50 ${selectedIds.includes(item.id) ? 'bg-blue-50/30' : ''}`}>
+                                            <td className="px-6 py-4">
+                                                <input
+                                                    type="checkbox"
+                                                    className="rounded border-slate-300"
+                                                    checked={selectedIds.includes(item.id)}
+                                                    onChange={() => toggleSelection(item.id)}
+                                                />
+                                            </td>
                                             <td className="px-6 py-4 text-slate-400">#{item.id}</td>
                                             <td className="px-6 py-4">
                                                 <div className="size-12 rounded bg-slate-100 overflow-hidden border border-slate-200">
@@ -276,7 +336,7 @@ const AdminDashboard: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                                     ))}
                                     {analyses.length === 0 && !loading && (
                                         <tr>
-                                            <td colSpan={7} className="px-6 py-10 text-center text-slate-400">暂无数据</td>
+                                            <td colSpan={8} className="px-6 py-10 text-center text-slate-400">暂无数据</td>
                                         </tr>
                                     )}
                                 </tbody>

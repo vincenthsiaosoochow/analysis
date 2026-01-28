@@ -45,4 +45,10 @@ export const adminService = {
         const response = await adminApi.delete(`/api/admin/analyses/${id}`);
         return response.data;
     },
+
+    // 批量删除艺术品
+    batchDeleteAnalyses: async (ids: number[]) => {
+        const response = await adminApi.post('/api/admin/analyses/batch-delete', { ids });
+        return response.data;
+    },
 };
