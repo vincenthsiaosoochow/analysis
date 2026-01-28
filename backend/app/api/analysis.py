@@ -34,14 +34,19 @@ async def analyze_artwork(
     # 调用通义千问分析
     print(f"[DEBUG] Starting AI analysis for image. Size: {len(base64_data)} chars")
     loop = asyncio.get_running_loop()
+    # 调用通义千问分析
+    print(f"[DEBUG] Starting AI analysis for image. Size: {len(base64_data)} chars")
+    loop = asyncio.get_running_loop()
     try:
         analysis_result = await loop.run_in_executor(None, analyze_artwork_with_qianwen, base64_data)
         print("[DEBUG] AI analysis completed successfully")
     except Exception as e:
-        print(f"[ERROR] AI analysis failed in threadpool: {e}")
-        # Fallback to mock if even the threadpool wrapper fails (unlikely, handled inside too)
-        from app.services.qianwen_service import _get_mock_analysis
-        analysis_result = _get_mock_analysis()
+        print(f"[ERROR] AI analysis failed: {e}")
+        # Explicitly fail the request if AI analysis errors out
+        raise HTTPException(
+            status_code=422,
+            detail="AI分析服务暂时不可用或分析失败，请重试。"
+        )
 
     # --- Validation Start ---
     # Check if critical fields exist. Data from AI might be partial or empty if generation failed.
@@ -103,7 +108,8 @@ def get_my_analyses(
             ArtworkAnalysis.user_id == current_user.id,
             ArtworkAnalysis.id.in_(favorite_subquery)
         ),
-        ArtworkAnalysis.core_analysis != None  # Filter out invalid/failed analyses
+        ArtworkAnalysis.core_analysis != None,  # Filter out invalid/failed analyses
+        ArtworkAnalysis.title != '未知作品'  # Filter out mock analyses
     ).order_by(ArtworkAnalysis.created_at.desc()).all()
     
     result = [_build_analysis_response(a, current_user, db) for a in analyses]
@@ -134,7 +140,10 @@ def discover_analyses(
         )
     
     # 过滤无效数据
-    query = query.filter(ArtworkAnalysis.core_analysis != None)
+    query = query.filter(
+        ArtworkAnalysis.core_analysis != None,
+        ArtworkAnalysis.title != '未知作品'
+    )
 
     # 排序
     if sort == "popular":

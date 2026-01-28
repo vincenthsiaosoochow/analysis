@@ -20,9 +20,9 @@ def analyze_artwork_with_qianwen(image_base64: str) -> Dict[str, Any]:
     Returns:
         分析结果字典
     """
-    # 如果 API key 未配置，返回模拟数据
+    # 如果 API key 未配置，抛出错误
     if not settings.DASHSCOPE_API_KEY:
-        return _get_mock_analysis()
+        raise ValueError("Server configuration error: DASHSCOPE_API_KEY mismatch")
     
     # 创建 OpenAI 客户端（通义千问兼容 OpenAI API）
     print(f"[DEBUG] Initializing Qwen Client. Model: {settings.QIANWEN_MODEL}, Base URL: {settings.QIANWEN_BASE_URL}")
@@ -155,8 +155,8 @@ def analyze_artwork_with_qianwen(image_base64: str) -> Dict[str, Any]:
         error_details = traceback.format_exc()
         print(f"[ERROR] 通义千问 API 调用失败: {str(e)}")
         print(f"[ERROR] 堆栈信息:\n{error_details}")
-        # 如果 API 调用失败，返回模拟数据
-        return _get_mock_analysis()
+        # Re-raise the exception to be handled by the caller
+        raise e
 
 
 def _get_mock_analysis() -> Dict[str, Any]:
