@@ -39,8 +39,21 @@ def analyze_artwork_with_qianwen(image_base64: str) -> Dict[str, Any]:
     )
     
     # 构建分析提示词
-    system_prompt = """你是拥有20年艺术史研究+10年艺术品投资顾问经验的专家，现对这幅画作进行**专业、结构化、可落地的分析**，输出需分三大模块，每个模块下分点阐述，使用专业术语且逻辑清晰。
-你的回复必须严格遵循 JSON 格式。所有文本应使用流畅、专业的中文。"""
+    system_prompt = """你是拥有20年艺术史研究+10年艺术品投资顾问经验的专家，也是一位严格的内容安全审查员。
+
+    首先，请**严格检查**提交的图片是否包含以下内容：
+    1. 色情、裸露或性暗示内容（经典艺术裸体除外，但需严格区分）；
+    2. 极度暴力、血腥或恐怖内容；
+    3. 违反法律法规的内容。
+
+    如果检测到上述违规内容，请**立即**返回以下 JSON 格式，不要输出任何其他分析内容：
+    {
+      "error": "nsfw_detected",
+      "reason": "涉及违规内容"
+    }
+
+    如果图片内容安全，请对这幅画作进行**专业、结构化、可落地的分析**，输出需分三大模块，每个模块下分点阐述，使用专业术语且逻辑清晰。
+    你的回复必须严格遵循 JSON 格式。所有文本应使用流畅、专业的中文。"""
     
     user_prompt = """分析这幅画作。输出需分三大模块，每个模块下分点阐述：
 
@@ -148,13 +161,21 @@ def analyze_artwork_with_qianwen(image_base64: str) -> Dict[str, Any]:
         result_text = response.choices[0].message.content
         result = json.loads(result_text)
         
+        # 检查是否包含违规标记
+        if result.get("error") == "nsfw_detected":
+            print(f"[WARN] NSFW content detected: {result.get('reason')}")
+            raise ValueError("NSFW_DETECTED")
+        
         return result
         
     except Exception as e:
         import traceback
         error_details = traceback.format_exc()
-        print(f"[ERROR] 通义千问 API 调用失败: {str(e)}")
-        print(f"[ERROR] 堆栈信息:\n{error_details}")
+        # Only log if it's not our intentional NSFW error (which is expected)
+        if str(e) != "NSFW_DETECTED":
+            print(f"[ERROR] 通义千问 API 调用失败: {str(e)}")
+            print(f"[ERROR] 堆栈信息:\n{error_details}")
+        
         # Re-raise the exception to be handled by the caller
         raise e
 
@@ -166,33 +187,5 @@ def _get_mock_analysis() -> Dict[str, Any]:
     return {
         "title": "未知作品",
         "artist": "未知艺术家",
-        "artistGender": "未知",
-        "style": "现代艺术",
-        "period": "当代",
-        "origin": "未知",
-        "palette": ["#2C3E50", "#E74C3C", "#ECF0F1", "#3498DB"],
-        "composition": "画面构图均衡，视觉中心明确",
-        "interpretation": "这是一幅富有表现力的作品，体现了艺术家对色彩和形式的独特理解",
-        "coreAnalysis": {
-            "styleAndSchool": "作品展现出现代主义风格，注重形式与色彩的结合",
-            "colorUsage": "色彩运用大胆，对比强烈，营造出独特的视觉效果",
-            "brushworkTexture": "笔触流畅自然，肌理丰富，体现出艺术家的技法功底",
-            "compositionLayout": "构图严谨，层次分明，引导观者视线",
-            "themeAndMood": "主题深刻，意境悠远，引发观者思考",
-            "artisticValue": "作品具有较高的艺术价值，展现了独特的艺术语言"
-        },
-        "artistInfo": {
-            "basics": "艺术家信息待识别",
-            "marketPosition": "市场定位有待进一步分析",
-            "representativeWorks": "代表作品信息待补充",
-            "styleEvolution": "风格演变轨迹待研究"
-        },
-        "investmentAnalysis": {
-            "rating": "C",
-            "ratingReason": "由于缺乏详细信息，暂给予中等评级",
-            "marketTrends": "市场趋势有待进一步观察",
-            "collectionAdvice": "建议谨慎收藏，需进一步了解艺术家背景",
-            "riskAlert": "信息不足可能导致投资风险，请谨慎决策",
-            "alternatives": "可关注同类型现代艺术作品"
-        }
+        # ... kept for compatibility if imported elsewhere, but unused logic
     }

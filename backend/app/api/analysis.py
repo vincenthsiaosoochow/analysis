@@ -41,6 +41,14 @@ async def analyze_artwork(
         analysis_result = await loop.run_in_executor(None, analyze_artwork_with_qianwen, base64_data)
         print("[DEBUG] AI analysis completed successfully")
     except Exception as e:
+        error_msg = str(e)
+        if "NSFW_DETECTED" in error_msg:
+            print(f"[WARN] Analysis rejected due to NSFW content")
+            raise HTTPException(
+                status_code=422,
+                detail="系统检测到图片包含敏感或违规内容，根据安全规范无法进行分析。"
+            )
+            
         print(f"[ERROR] AI analysis failed: {e}")
         # Explicitly fail the request if AI analysis errors out
         raise HTTPException(
