@@ -15,8 +15,9 @@ interface Analysis {
     artist: string;
     image_url: string;
     user_name: string;
+    user_phone?: string;
     created_at: string;
-    status: '正常' | '已删除';
+    status: '正常' | '已删除' | '分析失败';
 }
 
 const AdminDashboard: React.FC<{ onBack: () => void }> = ({ onBack }) => {
@@ -28,11 +29,18 @@ const AdminDashboard: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     const [loading, setLoading] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
 
-    // Auto refresh when tab changes
+    // Reset page when tab changes
     useEffect(() => {
         setPage(1);
-        fetchData(1);
+        // fetchData will be triggered by the page change effect below
+        // or we can call it explicitly if page is already 1
+        if (page === 1) fetchData(1);
     }, [activeTab]);
+
+    // Fetch data when page changes
+    useEffect(() => {
+        fetchData(page);
+    }, [page]);
 
     const fetchData = async (pageNum: number) => {
         setLoading(true);
@@ -48,7 +56,7 @@ const AdminDashboard: React.FC<{ onBack: () => void }> = ({ onBack }) => {
             }
         } catch (error) {
             console.error("Failed to fetch admin data", error);
-            alert("加载数据失败，请确认您有管理员权限");
+            // alert("加载数据失败，请确认您有管理员权限"); 
         } finally {
             setLoading(false);
         }
@@ -203,23 +211,25 @@ const AdminDashboard: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                                                 <div className="text-slate-500 text-xs">{item.artist}</div>
                                             </td>
                                             <td className="px-6 py-4">
-                                                <div>{item.user_name}</div>
-                                                {/* <div className="text-xs text-slate-400">ID: {item.user_id}</div> */}
+                                                <div className="font-medium">{item.user_name}</div>
+                                                <div className="text-xs text-slate-400">{item.user_phone}</div>
                                             </td>
                                             <td className="px-6 py-4 text-slate-500">{new Date(item.created_at).toLocaleString()}</td>
                                             <td className="px-6 py-4">
-                                                <span className={`px-2 py-0.5 rounded text-xs font-bold ${item.status === '正常' ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-500'
+                                                <span className={`px-2 py-0.5 rounded text-xs font-bold ${item.status === '正常' ? 'bg-emerald-50 text-emerald-600' :
+                                                        item.status === '分析失败' ? 'bg-amber-50 text-amber-600' :
+                                                            'bg-red-50 text-red-500'
                                                     }`}>
                                                     {item.status}
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4 text-right">
-                                                {item.status === '正常' && (
+                                                {(item.status === '正常' || item.status === '分析失败') && (
                                                     <button
                                                         onClick={() => handleDeleteAnalysis(item.id)}
                                                         className="text-red-500 hover:text-red-700 text-xs font-medium border border-red-200 hover:bg-red-50 px-3 py-1.5 rounded transition-colors"
                                                     >
-                                                        下架/删除
+                                                        删除
                                                     </button>
                                                 )}
                                             </td>

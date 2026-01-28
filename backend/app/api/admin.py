@@ -65,6 +65,10 @@ def export_users(
     output = io.StringIO()
     writer = csv.writer(output)
     
+    # 写入 BOM 以支持 Exce 中文打开
+    output.write('\ufeff')
+    writer = csv.writer(output)
+    
     # 写入表头
     writer.writerow(["ID", "姓名", "手机号", "注册时间", "是否管理员"])
     
@@ -72,7 +76,7 @@ def export_users(
         writer.writerow([
             u.id, 
             u.name or "未设置", 
-            u.phone, 
+            str(u.phone) + "\t", # 添加 tab 防止 Excel 将长数字转为科学计数法
             u.created_at.strftime("%Y-%m-%d %H:%M:%S") if u.created_at else "",
             "是" if u.is_admin else "否"
         ])
@@ -80,8 +84,8 @@ def export_users(
     output.seek(0)
     
     response = StreamingResponse(
-        iter([output.getvalue()]),
-        media_type="text/csv"
+        iter([output.getvalue().encode('utf-8')]),
+        media_type="text/csv; charset=utf-8"
     )
     response.headers["Content-Disposition"] = "attachment; filename=users_export.csv"
     return response
@@ -112,20 +116,28 @@ def list_analyses(
                     .offset((page - 1) * page_size) \
                     .limit(page_size) \
                     .all()
-                    
+    
+    def get_status(a):
+        if a.is_deleted:
+            return "已删除"
+        # 如果核心分析为空，视为失败/无效
+        if not a.core_analysis:
+            return "分析失败"
+        return "正常"
+
     return {
         "total": total,
         "page": page,
         "items": [
             {
                 "id": a.id,
-                "title": a.title,
-                "artist": a.artist,
+                "title": a.title or "无标题",
+                "artist": a.artist or "未知",
                 "image_url": f"/api/analysis/{a.id}/image", # Use endpoint
                 "user_name": a.user.name if a.user else "未知用户",
                 "user_phone": a.user.phone if a.user else "",
                 "created_at": a.created_at,
-                "status": "已删除" if a.is_deleted else "正常"
+                "status": get_status(a)
             }
             for a in analyses
         ]
