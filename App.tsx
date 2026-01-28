@@ -80,7 +80,8 @@ const App: React.FC = () => {
 
   const refreshFeatured = async () => {
     try {
-      const analyses = await analysisAPI.discover(undefined, 20, 'popular');
+      // 获取精选分析（世界级名画/S级作品随机展示）
+      const analyses = await analysisAPI.discover(undefined, 20, 'featured');
       setFeaturedAnalyses(analyses);
     } catch (err) {
       console.error("Failed to fetch featured analyses", err);

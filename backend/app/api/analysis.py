@@ -141,12 +141,13 @@ def get_my_analyses(
 def discover_analyses(
     search: Optional[str] = Query(None, description="搜索关键词"),
     limit: int = Query(20, ge=1, le=100, description="返回数量"),
-    sort: str = Query("latest", regex="^(latest|popular)$", description="排序方式"),
+    sort: str = Query("latest", regex="^(latest|popular|featured)$", description="排序方式"),
     db: Session = Depends(get_db)
 ):
     """
     获取公开的分析列表
     支持搜索、分页和排序
+    featured: 随机展示S级/A级精选作品
     """
     query = db.query(ArtworkAnalysis)
     
@@ -162,16 +163,72 @@ def discover_analyses(
     # 过滤无效数据 (SQL层面不再过滤，改为Python层面严格过滤)
     # query = query.filter(...) 
     
-    # 排序
-    if sort == "popular":
-        query = query.order_by(ArtworkAnalysis.likes.desc())
-    else:
-        query = query.order_by(ArtworkAnalysis.created_at.desc())
+    # 排序策略
+    if sort == "featured":
+        # 精选模式：逻辑稍复杂
+        # 1. 获取一个较大的候选池（例如最近500条或点赞前500条），在内存中筛选S级
+        candidate_limit = 500
+        # 优先取有点赞的，质量可能更高
+        query = query.order_by(ArtworkAnalysis.likes.desc(), ArtworkAnalysis.created_at.desc())
+        analyses = query.limit(candidate_limit).all()
         
-    analyses = query.limit(limit).all()
-    
-    # Python 层面严格过滤无效数据
-    valid_analyses = []
+        # 2. Python 层面筛选 + 验证
+        s_tier = []
+        a_tier = []
+        others = []
+        
+        for a in analyses:
+            # 基础验证
+            if not a.core_analysis or not isinstance(a.core_analysis, dict): continue
+            if not a.core_analysis.get("styleAndSchool") and not a.core_analysis.get("artisticValue"): continue
+            if not a.title or a.title == "未知作品": continue
+            
+            # 评级筛选
+            rating = None
+            if a.investment_analysis and isinstance(a.investment_analysis, dict):
+                rating = a.investment_analysis.get("rating")
+            
+            if rating == 'S':
+                s_tier.append(a)
+            elif rating == 'A':
+                a_tier.append(a)
+            else:
+                others.append(a)
+        
+        # 3. 组装结果：优先S，不够补A，不够补其他
+        # 随机打乱以保证每次刷新不同
+        random.shuffle(s_tier)
+        random.shuffle(a_tier)
+        random.shuffle(others)
+        
+        featured_list = s_tier
+        if len(featured_list) < limit:
+            featured_list += a_tier[:(limit - len(featured_list))]
+        if len(featured_list) < limit:
+            featured_list += others[:(limit - len(featured_list))]
+            
+        # 最终再次打乱混合展示（可选，或者保持S在前的顺序，这里选择打乱让用户感觉丰富）
+        random.shuffle(featured_list)
+        valid_analyses = featured_list
+
+    elif sort == "popular":
+        query = query.order_by(ArtworkAnalysis.likes.desc())
+        analyses = query.limit(limit).all()
+        valid_analyses = _filter_valid_analyses(analyses)
+    else:
+        # latest
+        query = query.order_by(ArtworkAnalysis.created_at.desc())
+        analyses = query.limit(limit).all()
+        valid_analyses = _filter_valid_analyses(analyses)
+
+    # discover 接口不需要用户认证，传入 None
+    result = [_build_analysis_response(a, None, db) for a in valid_analyses]
+    return {"success": True, "analyses": result}
+
+
+def _filter_valid_analyses(analyses):
+    """提取通用的过滤逻辑"""
+    valid = []
     for a in analyses:
         # 1. 检查 core_analysis 是否存在且为字典
         if not a.core_analysis or not isinstance(a.core_analysis, dict):
@@ -182,11 +239,8 @@ def discover_analyses(
         # 3. 检查标题是否为模拟数据或为空
         if not a.title or a.title == "未知作品":
             continue
-        valid_analyses.append(a)
-
-    # discover 接口不需要用户认证，传入 None
-    result = [_build_analysis_response(a, None, db) for a in valid_analyses]
-    return {"success": True, "analyses": result}
+        valid.append(a)
+    return valid
 
 
 @router.post("/{analysis_id}/favorite")
