@@ -13,6 +13,7 @@ from app.schemas import UserProfile, ArtworkAnalysisResponse
 
 router = APIRouter(prefix="/admin", tags=["后台管理"])
 
+
 # -----------------
 # 用户管理
 # -----------------
@@ -26,7 +27,7 @@ def list_users(
     admin: User = Depends(get_current_admin)
 ):
     """获取用户列表 (管理员只有)"""
-    query = db.query(User)
+    query = db.query(User).filter(User.is_deleted == 0)
     
     if search:
         query = query.filter((User.name.like(f"%{search}%")) | (User.phone.like(f"%{search}%")))
@@ -53,6 +54,35 @@ def list_users(
             for u in users
         ]
     }
+
+@router.delete("/users/{user_id}")
+def delete_user(
+    user_id: int,
+    db: Session = Depends(get_db),
+    admin: User = Depends(get_current_admin)
+):
+    """
+    软删除会员及其所有分析报告
+    """
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="未找到该用户")
+        
+    if user.is_admin:
+        raise HTTPException(status_code=400, detail="不能删除管理员账号")
+        
+    # 软删除用户
+    user.is_deleted = 1
+    
+    # 软删除用户的所有分析报告
+    db.query(ArtworkAnalysis).filter(ArtworkAnalysis.user_id == user_id).update(
+        {"is_deleted": 1},
+        synchronize_session=False
+    )
+    
+    db.commit()
+    
+    return {"success": True, "message": "用户及其数据已删除"}
 
 @router.get("/users/export")
 def export_users(

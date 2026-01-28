@@ -98,6 +98,17 @@ const AdminDashboard: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         }
     };
 
+    const handleDeleteUser = async (id: number) => {
+        if (!window.confirm("警告：确定要删除该会员吗？\n\n删除后：\n1. 该会员将无法登录\n2. 该会员上传的所有分析报告也将被同步删除")) return;
+        try {
+            await adminService.deleteUser(id);
+            alert("会员及其数据已删除");
+            fetchData(page);
+        } catch (error) {
+            alert("删除失败");
+        }
+    };
+
     const handleBatchDelete = async () => {
         if (selectedIds.length === 0) return;
         if (!window.confirm(`确定要批量删除选中的 ${selectedIds.length} 个分析报告吗？`)) return;
@@ -204,7 +215,15 @@ const AdminDashboard: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                                                 {user.is_admin ? (
                                                     <span className="px-2 py-0.5 bg-fuhung-blue/10 text-fuhung-blue rounded text-xs font-bold">管理员</span>
                                                 ) : (
-                                                    <span className="text-slate-400">会员</span>
+                                                    <div className="flex items-center justify-between">
+                                                        <span className="text-slate-400">会员</span>
+                                                        <button
+                                                            onClick={() => handleDeleteUser(user.id)}
+                                                            className="text-red-400 hover:text-red-600 text-xs border border-red-100 px-2 py-1 rounded hover:bg-red-50"
+                                                        >
+                                                            删除
+                                                        </button>
+                                                    </div>
                                                 )}
                                             </td>
                                         </tr>

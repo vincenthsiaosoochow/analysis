@@ -62,6 +62,12 @@ def login_user(login_data: UserLogin, db: Session) -> dict:
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="手机号或密码错误"
         )
+        
+    if user.is_deleted:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="该账号已被注销"
+        )
     
     # 验证密码
     if not verify_password(login_data.password, user.password_hash):

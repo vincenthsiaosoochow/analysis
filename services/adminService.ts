@@ -24,6 +24,12 @@ export const adminService = {
         return response.data;
     },
 
+    // 删除用户
+    deleteUser: async (id: number) => {
+        const response = await adminApi.delete(`/api/admin/users/${id}`);
+        return response.data;
+    },
+
     // 导出用户
     exportUsers: async () => {
         const response = await adminApi.get('/api/admin/users/export', {
