@@ -28,6 +28,10 @@ try:
             conn.execute(text("ALTER TABLE artwork_analyses ADD COLUMN is_deleted TINYINT DEFAULT 0 COMMENT '是否已删除';"))
         except Exception:
             pass
+        try:
+            conn.execute(text("ALTER TABLE users ADD COLUMN is_deleted TINYINT DEFAULT 0 COMMENT '是否已删除';"))
+        except Exception:
+            pass
         conn.commit()
     print("Database schema updated successfully.")
 except Exception as e:
