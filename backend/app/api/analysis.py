@@ -115,7 +115,8 @@ def get_my_analyses(
         or_(
             ArtworkAnalysis.user_id == current_user.id,
             ArtworkAnalysis.id.in_(favorite_subquery)
-        )
+        ),
+        ArtworkAnalysis.is_deleted == 0
     ).order_by(ArtworkAnalysis.created_at.desc()).all()
     
     # Python 层面严格过滤无效数据
@@ -150,7 +151,7 @@ def discover_analyses(
     支持搜索、分页和排序
     featured: 随机展示S级/A级精选作品
     """
-    query = db.query(ArtworkAnalysis)
+    query = db.query(ArtworkAnalysis).filter(ArtworkAnalysis.is_deleted == 0)
     
     # 搜索过滤
     if search:

@@ -35,6 +35,7 @@ class ArtworkAnalysis(Base):
     # 图片和统计
     image_url = Column(LONGTEXT, nullable=False, comment="作品图片URL")
     likes = Column(Integer, default=0, comment="点赞数")
+    is_deleted = Column(Integer, default=0, comment="是否已删除")  # 0:正常, 1:已删除
     
     created_at = Column(DateTime, server_default=func.now(), comment="创建时间")
     

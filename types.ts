@@ -3,6 +3,7 @@ export enum AppTab {
   HOME = 'home',
   DISCOVER = 'discover',
   PROFILE = 'profile',
+  ADMIN = 'admin',
 }
 
 export interface ArtworkAnalysis {
@@ -69,4 +70,5 @@ export interface UserProfile {
   name: string;
   phone: string;
   avatar: string;
+  is_admin?: boolean;
 }

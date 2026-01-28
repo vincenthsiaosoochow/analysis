@@ -88,7 +88,8 @@ def login_user(login_data: UserLogin, db: Session) -> dict:
             "id": user.id,
             "name": user.name,
             "phone": user.phone,
-            "avatar": user.avatar_url
+            "avatar": user.avatar_url,
+            "is_admin": user.is_admin
         }
     }
 

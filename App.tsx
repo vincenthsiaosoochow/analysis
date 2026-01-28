@@ -4,6 +4,7 @@ import { AppTab, ArtworkAnalysis, UserProfile } from './types';
 import { FEATURED_ARTWORKS, GLOBAL_ANALYSES } from './constants';
 import BottomNav from './components/BottomNav';
 import AnalysisView from './components/AnalysisView';
+import AdminDashboard from './pages/AdminDashboard';
 import { authAPI, analysisAPI } from './services/apiService';
 
 const Logo: React.FC<{ size?: 'sm' | 'md' }> = ({ size = 'md' }) => {
@@ -472,6 +473,10 @@ const App: React.FC = () => {
               </footer>
             </div>
           )}
+          {currentTab === AppTab.ADMIN && (
+            <AdminDashboard onBack={() => setCurrentTab(AppTab.HOME)} />
+          )}
+
           {currentTab === AppTab.PROFILE && (
             <div className="animate-fade-in max-w-md mx-auto min-h-screen p-8">
               <div className="flex items-center gap-4 mt-12 mb-12">
@@ -486,6 +491,15 @@ const App: React.FC = () => {
                   <button onClick={() => setAuthView('login')} className="w-full bg-primary text-white py-4 rounded-xl font-bold shadow-lg shadow-primary/20">立即登录</button>
                 ) : (
                   <>
+                    {profile.is_admin && (
+                      <button
+                        onClick={() => setCurrentTab(AppTab.ADMIN)}
+                        className="w-full mb-4 bg-slate-800 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg hover:bg-slate-700 transition-all"
+                      >
+                        <span className="material-symbols-outlined">admin_panel_settings</span>
+                        进入管理员后台
+                      </button>
+                    )}
                     <div className="mt-8 mb-8">
                       <div className="flex items-center gap-2 mb-4 px-2">
                         <span className="material-symbols-outlined text-primary">collections_bookmark</span>

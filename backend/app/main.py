@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
 from app.database import engine, Base
-from app.api import auth_router, analysis_router
+from app.api import auth_router, analysis_router, admin_router
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 import os
@@ -19,6 +19,15 @@ try:
     # 自动迁移：确保 image_url 是 LONGTEXT
     with engine.connect() as conn:
         conn.execute(text("ALTER TABLE artwork_analyses MODIFY image_url LONGTEXT COMMENT '作品图片URL';"))
+        # 尝试添加管理员相关字段 (Safe migration)
+        try:
+            conn.execute(text("ALTER TABLE users ADD COLUMN is_admin TINYINT DEFAULT 0 COMMENT '是否为管理员';"))
+        except Exception:
+            pass
+        try:
+            conn.execute(text("ALTER TABLE artwork_analyses ADD COLUMN is_deleted TINYINT DEFAULT 0 COMMENT '是否已删除';"))
+        except Exception:
+            pass
         conn.commit()
     print("Database schema updated successfully.")
 except Exception as e:
@@ -47,6 +56,7 @@ api_app = FastAPI(title="FUHUNG API")
 # 注册 API 路由到子应用
 api_app.include_router(auth_router)
 api_app.include_router(analysis_router)
+api_app.include_router(admin_router)
 
 @api_app.get("/")
 def api_root():

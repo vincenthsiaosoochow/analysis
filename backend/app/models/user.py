@@ -17,6 +17,7 @@ class User(Base):
     phone = Column(String(20), unique=True, nullable=False, index=True, comment="手机号")
     password_hash = Column(String(255), nullable=False, comment="密码哈希")
     avatar_url = Column(String(500), nullable=True, comment="头像URL")
+    is_admin = Column(Integer, default=0, comment="是否为管理员")  # 0:普通用户, 1:管理员 (Using Integer for better compatibility)
     created_at = Column(DateTime, server_default=func.now(), comment="创建时间")
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now(), comment="更新时间")
     
