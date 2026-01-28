@@ -104,7 +104,8 @@ const App: React.FC = () => {
           const newProfile = {
             name: user.name,
             phone: user.phone,
-            avatar: user.avatar || profile.avatar
+            avatar: user.avatar || profile.avatar,
+            is_admin: user.is_admin
           };
           setProfile(newProfile);
           // Update cache

@@ -68,7 +68,7 @@ export const authAPI = {
         const result = await request<{
             success: boolean;
             token: string;
-            user: { id: number; name: string; phone: string; avatar: string };
+            user: { id: number; name: string; phone: string; avatar: string; is_admin?: boolean };
         }>('/api/auth/login', {
             method: 'POST',
             body: JSON.stringify(data),
@@ -101,6 +101,7 @@ export const authAPI = {
             name: string;
             phone: string;
             avatar: string;
+            is_admin?: boolean;
         }>('/api/auth/me');
     },
 
