@@ -12,7 +12,7 @@ import asyncio
 from app.database import get_db
 from app.models import User, ArtworkAnalysis, UserFavorite
 from app.schemas import ArtworkAnalysisResponse, AnalysisListResponse
-from app.utils import get_current_user
+from app.utils import get_current_user, get_current_user_optional
 from app.services import analyze_artwork_with_qianwen, save_uploaded_image
 
 router = APIRouter(prefix="/analysis", tags=["艺术品分析"])
@@ -142,7 +142,8 @@ def discover_analyses(
     search: Optional[str] = Query(None, description="搜索关键词"),
     limit: int = Query(20, ge=1, le=100, description="返回数量"),
     sort: str = Query("latest", regex="^(latest|popular|featured)$", description="排序方式"),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: Optional[User] = Depends(get_current_user_optional)
 ):
     """
     获取公开的分析列表
@@ -221,8 +222,8 @@ def discover_analyses(
         analyses = query.limit(limit).all()
         valid_analyses = _filter_valid_analyses(analyses)
 
-    # discover 接口不需要用户认证，传入 None
-    result = [_build_analysis_response(a, None, db) for a in valid_analyses]
+    # discover 接口不需要用户认证，传入 None (UPDATED: 现在传入 user 以支持部分查看模式)
+    result = [_build_analysis_response(a, current_user, db) for a in valid_analyses]
     return {"success": True, "analyses": result}
 
 
@@ -336,8 +337,16 @@ def _build_analysis_response(
     author = db.query(User).filter(User.id == analysis.user_id).first()
     
     # Use the image endpoint instead of raw base64
-    # This keeps the JSON payload small
     image_endpoint = f"/api/analysis/{analysis.id}/image"
+    
+    # 游客模式数据脱敏/锁定
+    artist_info = analysis.artist_info
+    investment_analysis = analysis.investment_analysis
+    
+    if not current_user:
+        # 如果未登录，隐藏高级分析数据
+        artist_info = None
+        investment_analysis = None
     
     return ArtworkAnalysisResponse(
         id=analysis.id,
@@ -351,8 +360,8 @@ def _build_analysis_response(
         composition=analysis.composition,
         interpretation=analysis.interpretation,
         coreAnalysis=analysis.core_analysis,
-        artistInfo=analysis.artist_info,
-        investmentAnalysis=analysis.investment_analysis,
+        artistInfo=artist_info,
+        investmentAnalysis=investment_analysis,
         imageUrl=image_endpoint,
         likes=analysis.likes,
         authorName=author.name if author else None,

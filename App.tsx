@@ -413,6 +413,7 @@ const App: React.FC = () => {
           onBack={() => setAnalysis(null)}
           isSaved={isSaved(analysis.id)}
           onToggleSave={() => toggleSaveAnalysis(analysis)}
+          onLogin={() => setAuthView('login')}
         />
       ) : (
         <>

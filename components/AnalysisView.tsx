@@ -8,6 +8,7 @@ interface AnalysisViewProps {
   onBack: () => void;
   isSaved?: boolean;
   onToggleSave?: () => void;
+  onLogin?: () => void;
 }
 
 const ReportLogo: React.FC = () => (
@@ -22,7 +23,7 @@ const ReportLogo: React.FC = () => (
   </div>
 );
 
-const AnalysisView: React.FC<AnalysisViewProps> = ({ analysis, onBack, isSaved = false, onToggleSave }) => {
+const AnalysisView: React.FC<AnalysisViewProps> = ({ analysis, onBack, isSaved = false, onToggleSave, onLogin }) => {
   const reportRef = useRef<HTMLDivElement>(null);
   const [posterUrl, setPosterUrl] = React.useState<string | null>(null);
   const [isGeneratingPoster, setIsGeneratingPoster] = React.useState(false);
@@ -189,7 +190,9 @@ const AnalysisView: React.FC<AnalysisViewProps> = ({ analysis, onBack, isSaved =
             </div>
           )}
 
-          {analysis.artistInfo && (
+
+
+          {analysis.artistInfo ? (
             <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm">
               <div className="flex items-center gap-2 mb-6">
                 <span className="material-symbols-outlined text-fuhung-blue text-xl">person_search</span>
@@ -218,9 +221,14 @@ const AnalysisView: React.FC<AnalysisViewProps> = ({ analysis, onBack, isSaved =
                 </div>
               </div>
             </div>
+          ) : (
+            <div className="bg-white border border-dashed border-slate-300 rounded-2xl p-8 flex flex-col items-center justify-center text-center space-y-3 opacity-60">
+              <span className="material-symbols-outlined text-4xl text-slate-300">lock</span>
+              <p className="text-sm font-bold text-slate-400">会员专享：艺术家详细档案</p>
+            </div>
           )}
 
-          {analysis.investmentAnalysis && (
+          {analysis.investmentAnalysis ? (
             <div className="bg-[#001A41] text-white rounded-[2rem] p-8 shadow-2xl relative overflow-hidden">
               <div className="absolute -top-10 -right-10 size-40 bg-fuhung-blue/10 rounded-full blur-3xl"></div>
               <div className="flex items-center justify-between mb-8">
@@ -259,6 +267,24 @@ const AnalysisView: React.FC<AnalysisViewProps> = ({ analysis, onBack, isSaved =
                     {renderSafeContent(analysis.investmentAnalysis.riskAlert)}
                   </div>
                 </div>
+              </div>
+            </div>
+          ) : (
+            <div className="relative rounded-[2rem] overflow-hidden group cursor-pointer" onClick={onLogin}>
+              {/* 模糊背景 */}
+              <div className="absolute inset-0 bg-[#001A41] blur-md opacity-90 scale-105"></div>
+
+              <div className="relative z-10 bg-[#001A41]/80 backdrop-blur-xl p-10 flex flex-col items-center justify-center text-center py-20 border border-white/10 rounded-[2rem]">
+                <div className="size-16 rounded-2xl bg-fuhung-blue/20 flex items-center justify-center mb-6 ring-1 ring-fuhung-blue/50">
+                  <span className="material-symbols-outlined text-3xl text-fuhung-blue">lock</span>
+                </div>
+                <h3 className="text-xl font-bold text-white mb-2">解锁专家级投资报告</h3>
+                <p className="text-slate-400 text-sm mb-8 max-w-xs">
+                  立即登录，查看完整的艺术品价值评级、市场趋势分析及收藏风险提示。
+                </p>
+                <button className="bg-fuhung-blue hover:bg-fuhung-blue/90 text-white font-bold py-3 px-10 rounded-xl transition-all active:scale-95 shadow-lg shadow-fuhung-blue/20">
+                  登录 / 注册
+                </button>
               </div>
             </div>
           )}

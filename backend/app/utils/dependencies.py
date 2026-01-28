@@ -56,3 +56,30 @@ def get_current_user(
         )
     
     return user
+
+
+def get_current_user_optional(
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(HTTPBearer(auto_error=False)),
+    db: Session = Depends(get_db)
+) -> Optional[User]:
+    """
+    可选的当前用户获取
+    如果认证失败或未认证，返回 None 而不是抛出异常
+    """
+    if not credentials:
+        return None
+        
+    token = credentials.credentials
+    try:
+        payload = decode_access_token(token)
+        if not payload:
+            return None
+            
+        user_id = payload.get("sub")
+        if not user_id:
+            return None
+            
+        user = db.query(User).filter(User.id == user_id).first()
+        return user
+    except Exception:
+        return None
