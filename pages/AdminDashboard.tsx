@@ -18,6 +18,11 @@ interface Analysis {
     user_phone?: string;
     created_at: string;
     status: '正常' | '已删除' | '分析失败';
+    preview_info?: {
+        style: string;
+        rating: string;
+        summary: string;
+    };
 }
 
 const AdminDashboard: React.FC<{ onBack: () => void }> = ({ onBack }) => {
@@ -28,6 +33,7 @@ const AdminDashboard: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     const [total, setTotal] = useState(0);
     const [loading, setLoading] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
+    const [hoveredId, setHoveredId] = useState<number | null>(null);
 
     // Reset page when tab changes
     useEffect(() => {
@@ -206,9 +212,42 @@ const AdminDashboard: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                                                     <img src={item.image_url} className="w-full h-full object-cover" />
                                                 </div>
                                             </td>
-                                            <td className="px-6 py-4">
-                                                <div className="font-medium text-slate-900 line-clamp-1">{item.title}</div>
+                                            <td
+                                                className="px-6 py-4 relative group"
+                                                onMouseEnter={() => setHoveredId(item.id)}
+                                                onMouseLeave={() => setHoveredId(null)}
+                                            >
+                                                <div className="font-medium text-slate-900 line-clamp-1 cursor-help">{item.title}</div>
                                                 <div className="text-slate-500 text-xs">{item.artist}</div>
+
+                                                {/* Hover Preview Tooltip */}
+                                                {hoveredId === item.id && (
+                                                    <div className="absolute left-0 top-full mt-2 w-64 bg-white border border-slate-100 rounded-xl shadow-xl z-20 p-4 animate-fade-in">
+                                                        <h4 className="text-xs font-bold text-slate-900 mb-2 border-b border-slate-100 pb-2">分析预览</h4>
+                                                        {item.preview_info ? (
+                                                            <div className="space-y-2 text-xs">
+                                                                <div className="flex justify-between">
+                                                                    <span className="text-slate-400">评分</span>
+                                                                    <span className="font-bold text-fuhung-blue">{item.preview_info.rating}</span>
+                                                                </div>
+                                                                <div className="flex justify-between">
+                                                                    <span className="text-slate-400">风格</span>
+                                                                    <span className="text-slate-700">{item.preview_info.style}</span>
+                                                                </div>
+                                                                <div>
+                                                                    <span className="text-slate-400 block mb-1">内容摘要</span>
+                                                                    <p className="text-slate-600 leading-relaxed text-[10px] bg-slate-50 p-2 rounded">
+                                                                        {item.preview_info.summary}
+                                                                    </p>
+                                                                </div>
+                                                            </div>
+                                                        ) : (
+                                                            <div className="text-center text-slate-400 text-xs py-4">
+                                                                暂无分析数据
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                )}
                                             </td>
                                             <td className="px-6 py-4">
                                                 <div className="font-medium">{item.user_name}</div>
@@ -217,8 +256,8 @@ const AdminDashboard: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                                             <td className="px-6 py-4 text-slate-500">{new Date(item.created_at).toLocaleString()}</td>
                                             <td className="px-6 py-4">
                                                 <span className={`px-2 py-0.5 rounded text-xs font-bold ${item.status === '正常' ? 'bg-emerald-50 text-emerald-600' :
-                                                        item.status === '分析失败' ? 'bg-amber-50 text-amber-600' :
-                                                            'bg-red-50 text-red-500'
+                                                    item.status === '分析失败' ? 'bg-amber-50 text-amber-600' :
+                                                        'bg-red-50 text-red-500'
                                                     }`}>
                                                     {item.status}
                                                 </span>

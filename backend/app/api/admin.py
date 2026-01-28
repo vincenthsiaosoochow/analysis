@@ -137,7 +137,12 @@ def list_analyses(
                 "user_name": a.user.name if a.user else "未知用户",
                 "user_phone": a.user.phone if a.user else "",
                 "created_at": a.created_at,
-                "status": get_status(a)
+                "status": get_status(a),
+                "preview_info": {
+                    "style": a.core_analysis.get('styleAndSchool', '未识别') if a.core_analysis else "数据缺失",
+                    "rating": a.investment_analysis.get('rating', 'N/A') if a.investment_analysis else "N/A",
+                    "summary": a.core_analysis.get('artisticValue', '')[:50] + "..." if a.core_analysis else "无内容"
+                }
             }
             for a in analyses
         ]
