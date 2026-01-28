@@ -6,6 +6,7 @@ from app.schemas.auth import (
     UserLogin,
     PasswordReset,
     UserResponse,
+    UserResponse as UserProfile,
     LoginResponse
 )
 from app.schemas.artwork import (
@@ -26,5 +27,6 @@ __all__ = [
     "ArtistInfo",
     "InvestmentAnalysis",
     "ArtworkAnalysisResponse",
-    "AnalysisListResponse"
+    "AnalysisListResponse",
+    "UserProfile"
 ]
