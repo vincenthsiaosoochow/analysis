@@ -111,6 +111,13 @@ export const authAPI = {
     logout: () => {
         localStorage.removeItem('auth_token');
     },
+
+    /**
+     * 申请成为管理员 (紧急修复)
+     */
+    claimAdmin: async () => {
+        return request('/api/auth/claim-admin', { method: 'POST' });
+    },
 };
 
 /**
