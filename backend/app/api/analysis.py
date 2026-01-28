@@ -43,6 +43,19 @@ async def analyze_artwork(
         from app.services.qianwen_service import _get_mock_analysis
         analysis_result = _get_mock_analysis()
 
+    # --- Validation Start ---
+    # Check if critical fields exist. Data from AI might be partial or empty if generation failed.
+    if not analysis_result or \
+       not analysis_result.get("coreAnalysis") or \
+       not analysis_result.get("artistInfo"):
+        
+        print(f"[ERROR] Analysis result validation failed: {analysis_result}")
+        raise HTTPException(
+            status_code=422,
+            detail="AI分析未能生成有效报告，请重试或更换图片。"
+        )
+    # --- Validation End ---
+
     # 保存分析结果到数据库
     artwork = ArtworkAnalysis(
         user_id=current_user.id,
@@ -89,7 +102,8 @@ def get_my_analyses(
         or_(
             ArtworkAnalysis.user_id == current_user.id,
             ArtworkAnalysis.id.in_(favorite_subquery)
-        )
+        ),
+        ArtworkAnalysis.core_analysis != None  # Filter out invalid/failed analyses
     ).order_by(ArtworkAnalysis.created_at.desc()).all()
     
     result = [_build_analysis_response(a, current_user, db) for a in analyses]
@@ -119,6 +133,9 @@ def discover_analyses(
             (ArtworkAnalysis.style.like(search_pattern))
         )
     
+    # 过滤无效数据
+    query = query.filter(ArtworkAnalysis.core_analysis != None)
+
     # 排序
     if sort == "popular":
         query = query.order_by(ArtworkAnalysis.likes.desc())
