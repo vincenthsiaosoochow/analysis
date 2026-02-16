@@ -3,6 +3,7 @@ import { Exhibition, ExhibitionFilterState } from '../types';
 import { exhibitionAPI } from '../services/exhibitionService';
 import ExhibitionCard from '../components/ExhibitionCard';
 import ExhibitionFilter from '../components/ExhibitionFilter';
+import { SkeletonExhibitionList } from '../components/SkeletonLoading';
 
 interface ExhibitionsProps {
     onNavigateDetail: (id: number) => void;
@@ -102,9 +103,7 @@ const Exhibitions: React.FC<ExhibitionsProps> = ({ onNavigateDetail, onBack }) =
             {/* List Content */}
             <main className="px-4 max-w-5xl mx-auto mt-2">
                 {isLoading ? (
-                    <div className="flex justify-center items-center py-20">
-                        <div className="size-10 border-4 border-slate-200 border-t-primary rounded-full animate-spin"></div>
-                    </div>
+                    <SkeletonExhibitionList />
                 ) : exhibitions.length > 0 ? (
                     <div className="masonry-container">
                         {exhibitions.map(ex => (

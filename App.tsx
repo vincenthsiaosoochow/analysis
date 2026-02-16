@@ -4,10 +4,14 @@ import { AppTab, ArtworkAnalysis, UserProfile, Exhibition } from './types';
 import { FEATURED_ARTWORKS, GLOBAL_ANALYSES } from './constants';
 import BottomNav from './components/BottomNav';
 import AnalysisView from './components/AnalysisView';
+import Logo from './components/Logo';
+import OnboardingModal from './components/OnboardingModal';
 import AdminDashboard from './pages/AdminDashboard';
 import Exhibitions from './pages/Exhibitions';
 import ExhibitionDetail from './pages/ExhibitionDetail';
 import { authAPI, analysisAPI } from './services/apiService';
+import { exhibitionAPI } from './services/exhibitionService';
+import { SkeletonArtworkList } from './components/SkeletonLoading';
 
 // Error Boundary Component
 class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean; error: Error | null }> {
