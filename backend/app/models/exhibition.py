@@ -32,36 +32,8 @@ class Exhibition(Base):
     # Relationships
     favorited_by = relationship("UserExhibitionFavorite", back_populates="exhibition", cascade="all, delete-orphan")
 
-    @property
-    def status(self) -> str:
-        from datetime import datetime
-        now = datetime.now()
-        # 注意：建议确保时区一致性
-        if now < self.start_date:
-            return ExhibitionStatus.UPCOMING.value
-        elif now > self.end_date:
-            return ExhibitionStatus.ENDED.value
-        else:
-            return ExhibitionStatus.ONGOING.value
-
-    def to_dict(self):
-        return {
-            "id": self.id,
-            "title": self.title,
-            "cover_image": self.cover_image,
-            "venue": self.venue,
-            "start_date": self.start_date,
-            "end_date": self.end_date,
-            "address": self.address,
-            "city": self.city,
-            "country": self.country,
-            "continent": self.continent,
-            "ticket_info": self.ticket_info,
-            "description": self.description,
-            "official_link": self.official_link,
-            "created_at": self.created_at,
-            "updated_at": self.updated_at
-        }
+    # NOTE: status 字段的计算已移除 @property，改由 Pydantic ExhibitionOut schema 的 model_validator 负责
+    # 这样避免了 ORM model property 与 Pydantic schema 字段的冲突
 
 class UserExhibitionFavorite(Base):
     __tablename__ = "user_exhibition_favorites"
