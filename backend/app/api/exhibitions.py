@@ -6,7 +6,7 @@ from app.database import get_db
 from app.models.user import User
 from app.schemas.exhibition import ExhibitionCreate, ExhibitionOut, ExhibitionUpdate
 from app.services.exhibition_service import ExhibitionService
-from app.utils.dependencies import get_current_user, get_current_admin
+from app.utils.dependencies import get_current_user_optional, get_current_admin
 
 router = APIRouter(
     prefix="/exhibitions",
@@ -21,7 +21,7 @@ def get_exhibitions(
     city: Optional[str] = None,
     keyword: Optional[str] = None,
     db: Session = Depends(get_db),
-    current_user: Optional[User] = Depends(get_current_user) # Optional auth to check favorites status
+    current_user: Optional[User] = Depends(get_current_user_optional)  # Optional auth to check favorites status
 ):
     exhibitions = ExhibitionService.get_exhibitions(db, skip, limit, status, city, keyword)
     
@@ -62,7 +62,7 @@ def get_my_favorites(
 def get_exhibition(
     exhibition_id: int,
     db: Session = Depends(get_db),
-    current_user: Optional[User] = Depends(get_current_user)
+    current_user: Optional[User] = Depends(get_current_user_optional)
 ):
     exhibition = ExhibitionService.get_exhibition(db, exhibition_id)
     if not exhibition:
