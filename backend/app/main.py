@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
 from app.database import engine, Base
-from app.api import auth_router, analysis_router, admin_router, exhibitions
+from app.api import auth_router, analysis_router, admin_router, exhibitions, upload_router
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 import os
@@ -71,6 +71,7 @@ api_app.include_router(auth_router)
 api_app.include_router(analysis_router)
 api_app.include_router(admin_router)
 api_app.include_router(exhibitions.router)
+api_app.include_router(upload_router)
 
 @api_app.get("/")
 def api_root():

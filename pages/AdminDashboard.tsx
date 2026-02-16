@@ -52,6 +52,8 @@ const AdminDashboard: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         status: ExhibitionStatus.UPCOMING
     });
 
+
+
     // Reset page when tab changes
     useEffect(() => {
         setPage(1);
@@ -147,17 +149,46 @@ const AdminDashboard: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     };
 
     // Exhibition Handlers
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        setIsUploading(true);
+        try {
+            const { analysisAPI } = await import('../services/apiService');
+            const result = await analysisAPI.uploadImage(file);
+            setCreateForm(prev => ({ ...prev, cover_image: result.url }));
+        } catch (error) {
+            console.error("Upload failed", error);
+            alert("图片上传失败");
+        } finally {
+            setIsUploading(false);
+        }
+    };
+
     const handleCreateExhibition = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (!createForm.cover_image) {
+            alert("请上传封面图");
+            return;
+        }
         try {
-            await exhibitionAPI.createExhibition(createForm);
+            // Ensure dates are valid ISO strings to prevent 422 errors
+            const payload = {
+                ...createForm,
+                start_date: createForm.start_date ? new Date(createForm.start_date).toISOString() : undefined,
+                end_date: createForm.end_date ? new Date(createForm.end_date).toISOString() : undefined
+            };
+
+            await exhibitionAPI.createExhibition(payload);
             alert("展览创建成功");
             setShowCreateModal(false);
             setCreateForm({ title: '', venue: '', start_date: '', end_date: '', city: '', cover_image: '', status: ExhibitionStatus.UPCOMING });
             fetchData(page);
-        } catch (error) {
+        } catch (error: any) {
             console.error(error);
-            alert("创建失败，请检查填写信息");
+            const msg = error.response?.data?.detail || error.message || "创建失败";
+            alert(`创建失败: ${Array.isArray(msg) ? JSON.stringify(msg) : msg}`);
         }
     };
 
@@ -410,8 +441,8 @@ const AdminDashboard: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                                             </td>
                                             <td className="px-6 py-4">
                                                 <span className={`px-2 py-0.5 rounded text-xs font-bold border ${item.status === ExhibitionStatus.ONGOING ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
-                                                        item.status === ExhibitionStatus.UPCOMING ? 'bg-amber-50 text-amber-600 border-amber-100' :
-                                                            'bg-slate-50 text-slate-500 border-slate-100'
+                                                    item.status === ExhibitionStatus.UPCOMING ? 'bg-amber-50 text-amber-600 border-amber-100' :
+                                                        'bg-slate-50 text-slate-500 border-slate-100'
                                                     }`}>
                                                     {item.status}
                                                 </span>
@@ -482,9 +513,33 @@ const AdminDashboard: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                                         value={createForm.end_date} onChange={e => setCreateForm({ ...createForm, end_date: e.target.value })} />
                                 </div>
                                 <div className="space-y-1.5 col-span-2">
-                                    <label className="text-xs font-bold text-slate-500 uppercase">封面图 URL</label>
-                                    <input required className="w-full px-4 py-3 bg-slate-50 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-primary/20"
-                                        value={createForm.cover_image} onChange={e => setCreateForm({ ...createForm, cover_image: e.target.value })} placeholder="https://..." />
+                                    <label className="text-xs font-bold text-slate-500 uppercase">封面图</label>
+                                    {createForm.cover_image && (
+                                        <div className="relative w-full h-40 rounded-xl overflow-hidden mb-2 border border-slate-200">
+                                            <img src={createForm.cover_image} alt="Cover Preview" className="w-full h-full object-cover" />
+                                            <button
+                                                type="button"
+                                                onClick={() => setCreateForm({ ...createForm, cover_image: '' })}
+                                                className="absolute top-2 right-2 bg-black/50 text-white rounded-full p-1 hover:bg-black/70"
+                                            >
+                                                <span className="material-symbols-outlined text-sm">close</span>
+                                            </button>
+                                        </div>
+                                    )}
+                                    <div className="flex items-center gap-3">
+                                        <label className={`flex-1 flex items-center justify-center border-2 border-dashed border-slate-200 rounded-xl p-4 cursor-pointer hover:bg-slate-50 transition-colors ${isUploading ? 'opacity-50 pointer-events-none' : ''}`}>
+                                            <div className="flex flex-col items-center gap-1 text-slate-400">
+                                                <span className="material-symbols-outlined">add_photo_alternate</span>
+                                                <span className="text-xs font-bold">{isUploading ? '上传中...' : '上传封面图'}</span>
+                                            </div>
+                                            <input
+                                                type="file"
+                                                accept="image/*"
+                                                onChange={handleImageUpload}
+                                                className="hidden"
+                                            />
+                                        </label>
+                                    </div>
                                 </div>
                                 <div className="space-y-1.5 col-span-2">
                                     <label className="text-xs font-bold text-slate-500 uppercase">详细地址</label>

@@ -188,6 +188,30 @@ export const analysisAPI = {
     getAnalysisById: async (analysisId: number) => {
         return request<any>(`/api/analysis/${analysisId}`);
     },
+
+    /**
+     * 上传图片 (通用)
+     */
+    uploadImage: async (file: File) => {
+        const formData = new FormData();
+        formData.append('file', file);
+
+        const token = localStorage.getItem('auth_token');
+        const response = await fetch(`${API_BASE_URL}/api/upload/image`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+            },
+            body: formData,
+        });
+
+        if (!response.ok) {
+            const error = await response.json().catch(() => ({ detail: '上传失败' }));
+            throw new Error(error.detail || '上传失败');
+        }
+
+        return response.json();
+    },
 };
 
 export default { authAPI, analysisAPI };
