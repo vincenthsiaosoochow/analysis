@@ -75,3 +75,18 @@ def claim_admin(
             "is_admin": bool(current_user.is_admin)
         }
     }
+
+@router.get("/me/exhibitions")
+def get_my_exhibition_favorites(
+    db: Session = Depends(get_db),
+    current_user = Depends(get_current_user)
+):
+    """
+    获取当前用户收藏的展览列表
+    """
+    from app.services.exhibition_service import ExhibitionService
+    exhibitions = ExhibitionService.get_user_favorites(db, current_user.id)
+    
+    # 返回 ExhibitionOut schema 格式
+    from app.schemas.exhibition import ExhibitionOut
+    return [ExhibitionOut.model_validate(e) for e in exhibitions]

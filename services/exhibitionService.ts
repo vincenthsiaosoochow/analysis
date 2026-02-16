@@ -43,7 +43,7 @@ export const exhibitionAPI = {
 
     // 我的收藏
     getMyFavorites: async (): Promise<Exhibition[]> => {
-        const response = await axios.get(`${API_BASE_URL}/api/users/me/exhibitions`, {
+        const response = await axios.get(`${API_BASE_URL}/api/auth/me/exhibitions`, {
             headers: getAuthHeaders()
         });
         return response.data;
