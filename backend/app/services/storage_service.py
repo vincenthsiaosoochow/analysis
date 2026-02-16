@@ -1,19 +1,12 @@
 """
 图片存储服务
-处理图片的保存和管理
+处理图片的保存和管理 - 使用数据库存储（Data URI）以避免容器重启丢失文件
 """
-import os
-import uuid
-from pathlib import Path
+import base64
 from typing import Tuple
 from fastapi import UploadFile, HTTPException
 
 from app.config import settings
-
-
-# 上传目录配置
-UPLOAD_DIR = Path("static/uploads")
-UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
 
 def validate_image(file: UploadFile) -> None:
@@ -30,12 +23,13 @@ def validate_image(file: UploadFile) -> None:
 
 async def save_uploaded_image(file: UploadFile) -> Tuple[str, str]:
     """
-    保存上传的图片文件到磁盘
+    保存上传的图片为 Data URI（base64编码）
+    存储在数据库中，避免容器重启导致文件丢失
     
     Returns:
-        (image_url, file_path) 元组
-        - image_url: 可访问的 HTTP URL（如 /uploads/xxx.jpg）
-        - file_path: 文件在磁盘上的完整路径
+        (image_url, base64_data) 元组
+        - image_url: Data URI 格式的图片数据
+        - base64_data: 纯 base64 编码字符串
     """
     # 验证图片
     validate_image(file)
@@ -43,24 +37,18 @@ async def save_uploaded_image(file: UploadFile) -> Tuple[str, str]:
     # 读取文件内容
     content = await file.read()
     
-    # 检查文件大小
-    if len(content) > settings.MAX_UPLOAD_SIZE:
+    # 检查文件大小（限制为 5MB，避免数据库过大）
+    max_size = min(settings.MAX_UPLOAD_SIZE, 5 * 1024 * 1024)  # 最大5MB
+    if len(content) > max_size:
         raise HTTPException(
             status_code=400,
-            detail=f"文件大小超出限制（最大 {settings.MAX_UPLOAD_SIZE / 1024 / 1024}MB）"
+            detail=f"文件大小超出限制（最大 {max_size / 1024 / 1024}MB）"
         )
     
-    # 生成唯一文件名（使用 UUID 防止冲突）
-    file_extension = Path(file.filename).suffix if file.filename else ".jpg"
-    unique_filename = f"{uuid.uuid4().hex}{file_extension}"
-    file_path = UPLOAD_DIR / unique_filename
+    # 转换为 base64
+    base64_data = base64.b64encode(content).decode('utf-8')
     
-    # 保存文件到磁盘
-    with open(file_path, "wb") as f:
-        f.write(content)
+    # 返回 Data URI 格式（直接可在 <img> 标签中使用）
+    image_url = f"data:{file.content_type};base64,{base64_data}"
     
-    # 返回可访问的 URL（通过 API app 挂载点访问）
-    # 图片将通过 /api/uploads/xxx.jpg 访问
-    image_url = f"/api/uploads/{unique_filename}"
-    
-    return image_url, str(file_path)
+    return image_url, base64_data
