@@ -40,8 +40,9 @@ const AdminDashboard: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     const [selectedIds, setSelectedIds] = useState<number[]>([]);
     const [filterStatus, setFilterStatus] = useState<'valid' | 'deleted' | 'all'>('valid');
 
-    // Exhibition Creation State
+    // Exhibition Creation/Edit State
     const [showCreateModal, setShowCreateModal] = useState(false);
+    const [editingExhibition, setEditingExhibition] = useState<Exhibition | null>(null);
     const [createForm, setCreateForm] = useState<Partial<Exhibition>>({
         title: '',
         venue: '',
@@ -181,16 +182,43 @@ const AdminDashboard: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                 end_date: createForm.end_date ? new Date(createForm.end_date).toISOString() : undefined
             };
 
-            await exhibitionAPI.createExhibition(payload);
-            alert("展览创建成功");
+            if (editingExhibition) {
+                // 编辑模式
+                await exhibitionAPI.updateExhibition(editingExhibition.id, payload);
+                alert("展览更新成功");
+            } else {
+                // 创建模式
+                await exhibitionAPI.createExhibition(payload);
+                alert("展览创建成功");
+            }
+
             setShowCreateModal(false);
+            setEditingExhibition(null);
             setCreateForm({ title: '', venue: '', start_date: '', end_date: '', city: '', cover_image: '', status: ExhibitionStatus.UPCOMING });
             fetchData(page);
         } catch (error: any) {
             console.error(error);
-            const msg = error.response?.data?.detail || error.message || "创建失败";
-            alert(`创建失败: ${Array.isArray(msg) ? JSON.stringify(msg) : msg}`);
+            alert(`${editingExhibition ? '更新' : '创建'}失败: ${error.response?.statusText || error.message}`);
         }
+    };
+
+    const handleEditExhibition = (exhibition: Exhibition) => {
+        setEditingExhibition(exhibition);
+        setCreateForm({
+            title: exhibition.title,
+            venue: exhibition.venue,
+            start_date: exhibition.start_date.split('T')[0], // Convert ISO to date input format
+            end_date: exhibition.end_date.split('T')[0],
+            city: exhibition.city,
+            cover_image: exhibition.cover_image,
+            address: exhibition.address,
+            country: exhibition.country,
+            continent: exhibition.continent,
+            ticket_info: exhibition.ticket_info,
+            description: exhibition.description,
+            official_link: exhibition.official_link
+        });
+        setShowCreateModal(true);
     };
 
     const toggleSelection = (id: number) => {
@@ -449,12 +477,20 @@ const AdminDashboard: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4 text-right">
-                                                <button
-                                                    onClick={() => exhibitionAPI.deleteExhibition(item.id).then(() => fetchData(page))}
-                                                    className="text-red-500 hover:text-red-700 text-xs font-medium border border-red-200 hover:bg-red-50 px-3 py-1.5 rounded transition-colors"
-                                                >
-                                                    删除
-                                                </button>
+                                                <div className="flex items-center justify-end gap-2">
+                                                    <button
+                                                        onClick={() => handleEditExhibition(item)}
+                                                        className="text-blue-500 hover:text-blue-700 text-xs font-medium border border-blue-200 hover:bg-blue-50 px-3 py-1.5 rounded transition-colors"
+                                                    >
+                                                        编辑
+                                                    </button>
+                                                    <button
+                                                        onClick={() => exhibitionAPI.deleteExhibition(item.id).then(() => fetchData(page))}
+                                                        className="text-red-500 hover:text-red-700 text-xs font-medium border border-red-200 hover:bg-red-50 px-3 py-1.5 rounded transition-colors"
+                                                    >
+                                                        删除
+                                                    </button>
+                                                </div>
                                             </td>
                                         </tr>
                                     ))}
@@ -483,7 +519,7 @@ const AdminDashboard: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                 <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4 backdrop-blur-sm">
                     <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl">
                         <div className="p-6 border-b border-slate-100 flex items-center justify-between">
-                            <h3 className="text-xl font-bold text-slate-900">新增展览</h3>
+                            <h3 className="text-xl font-bold text-slate-900">{editingExhibition ? '编辑展览' : '新增展览'}</h3>
                             <button onClick={() => setShowCreateModal(false)} className="material-symbols-outlined text-slate-400 hover:text-slate-600">close</button>
                         </div>
                         <form onSubmit={handleCreateExhibition} className="p-8 space-y-6">

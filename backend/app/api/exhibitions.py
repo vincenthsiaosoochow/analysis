@@ -84,6 +84,19 @@ def create_exhibition(
 ):
     return ExhibitionService.create_exhibition(db, exhibition)
 
+@router.put("/{exhibition_id}", response_model=ExhibitionOut)
+def update_exhibition(
+    exhibition_id: int,
+    exhibition: ExhibitionUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_admin)
+):
+    updated = ExhibitionService.update_exhibition(db, exhibition_id, exhibition)
+    if not updated:
+        raise HTTPException(status_code=404, detail="Exhibition not found")
+    return updated
+
+
 @router.delete("/{exhibition_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_exhibition(
     exhibition_id: int,

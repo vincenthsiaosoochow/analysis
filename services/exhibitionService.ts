@@ -56,6 +56,15 @@ export const exhibitionAPI = {
         return response.data;
     },
 
+    // 管理员：更新
+    updateExhibition: async (id: number, data: Partial<Exhibition>): Promise<Exhibition> => {
+        const response = await axios.put(`${API_BASE_URL}/api/exhibitions/${id}`, data, {
+            headers: getAuthHeaders()
+        });
+        return response.data;
+    },
+
+
     // 管理员：删除
     deleteExhibition: async (id: number): Promise<void> => {
         await axios.delete(`${API_BASE_URL}/api/exhibitions/${id}`, {
