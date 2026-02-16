@@ -52,6 +52,7 @@ const AdminDashboard: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         status: ExhibitionStatus.UPCOMING
     });
 
+    const [isUploading, setIsUploading] = useState(false);
 
 
     // Reset page when tab changes
