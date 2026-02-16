@@ -59,8 +59,8 @@ async def save_uploaded_image(file: UploadFile) -> Tuple[str, str]:
     with open(file_path, "wb") as f:
         f.write(content)
     
-    # 返回可访问的 URL（相对于静态文件根目录）
-    # FastAPI 会通过 StaticFiles 挂载点提供访问
-    image_url = f"/uploads/{unique_filename}"
+    # 返回可访问的 URL（通过 API app 挂载点访问）
+    # 图片将通过 /api/uploads/xxx.jpg 访问
+    image_url = f"/api/uploads/{unique_filename}"
     
     return image_url, str(file_path)

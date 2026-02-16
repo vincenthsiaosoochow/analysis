@@ -9,6 +9,7 @@ from app.database import engine, Base
 from app.api import auth_router, analysis_router, admin_router, exhibitions, upload_router
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
+from pathlib import Path
 import os
 
 from sqlalchemy import text
@@ -73,6 +74,11 @@ api_app.include_router(admin_router)
 api_app.include_router(exhibitions.router)
 api_app.include_router(upload_router)
 
+# 挂载上传文件目录到 API app（确保目录存在）
+UPLOAD_DIR = Path("static/uploads")
+UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+api_app.mount("/uploads", StaticFiles(directory=str(UPLOAD_DIR)), name="uploads")
+
 @api_app.get("/")
 def api_root():
     return {
@@ -88,9 +94,7 @@ app.mount("/api", api_app)
 # 确保在 Docker 环境中 static 目录存在
 if os.path.exists("static"):
     app.mount("/assets", StaticFiles(directory="static/assets"), name="assets")
-    # 挂载上传文件目录
-    if os.path.exists("static/uploads"):
-        app.mount("/uploads", StaticFiles(directory="static/uploads"), name="uploads")
+    # NOTE: uploads 已挂载到 API app 下 (/api/uploads)
 
     # SPA 路由处理 - 必须放在最后
     @app.get("/{full_path:path}")
