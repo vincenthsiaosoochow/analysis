@@ -120,7 +120,7 @@ const App: React.FC = () => {
     if (!isLoggedIn) return;
     try {
       const profile = await authAPI.getUserProfile();
-      setUserProfile(profile);
+      setProfile(profile);
       await refreshUserAnalyses();
       await refreshMyExhibitions();
     } catch (err) {
