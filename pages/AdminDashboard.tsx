@@ -60,7 +60,7 @@ const AdminDashboard: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     useEffect(() => {
         setPage(1);
         setSelectedIds([]);
-        if (page === 1) fetchData(1);
+        fetchData(1); // 总是调用 fetchData，不管 page 是否为 1
     }, [activeTab, filterStatus]);
 
     // Fetch data when page changes
