@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ExhibitionStatus, ExhibitionStatusLabel } from '../types';
+import { exhibitionAPI } from '../services/exhibitionService';
 
 interface ExhibitionFilterProps {
     onFilterChange: (filters: { status?: string; city?: string }) => void;
@@ -7,11 +8,21 @@ interface ExhibitionFilterProps {
 }
 
 const ExhibitionFilter: React.FC<ExhibitionFilterProps> = ({ onFilterChange, activeFilters }) => {
-    // 模拟的城市数据，实际可从 API 获取或根据现有数据聚合
-    const CITIES = ['北京', '上海', '广州', '深圳', '成都', '杭州', '香港', '台北', '伦敦', '纽约', '巴黎', '东京'];
-
-    // 显式展开状态，若筛选项过多可折叠
+    const [cities, setCities] = useState<string[]>([]);
     const [isExpanded, setIsExpanded] = useState(false);
+
+    // 获取有展览的城市列表
+    useEffect(() => {
+        const fetchCities = async () => {
+            try {
+                const availableCities = await exhibitionAPI.getCities();
+                setCities(availableCities);
+            } catch (error) {
+                console.error("Failed to fetch cities", error);
+            }
+        };
+        fetchCities();
+    }, []);
 
     return (
         <div className="mb-6 space-y-4">
@@ -42,39 +53,43 @@ const ExhibitionFilter: React.FC<ExhibitionFilterProps> = ({ onFilterChange, act
                 ))}
             </div>
 
-            {/* City Filter */}
-            <div className={`relative transition-all duration-300 ${isExpanded ? 'active' : ''}`}>
-                <div className="flex flex-wrap gap-2">
-                    <button
-                        onClick={() => onFilterChange({ ...activeFilters, city: undefined })}
-                        className={`px-3 py-1 rounded text-[11px] font-medium transition-all ${!activeFilters.city
-                            ? 'text-slate-900 bg-slate-100'
-                            : 'text-slate-400 hover:text-slate-600'
-                            }`}
-                    >
-                        全部地区
-                    </button>
-                    {(isExpanded ? CITIES : CITIES.slice(0, 7)).map(city => (
+            {/* City Filter - 动态显示有展览的城市 */}
+            {cities.length > 0 && (
+                <div className={`relative transition-all duration-300 ${isExpanded ? 'active' : ''}`}>
+                    <div className="flex flex-wrap gap-2">
                         <button
-                            key={city}
-                            onClick={() => onFilterChange({ ...activeFilters, city: city === activeFilters.city ? undefined : city })}
-                            className={`px-3 py-1 rounded text-[11px] font-medium transition-all ${activeFilters.city === city
-                                ? 'text-primary bg-primary/5 font-bold'
+                            onClick={() => onFilterChange({ ...activeFilters, city: undefined })}
+                            className={`px-3 py-1 rounded text-[11px] font-medium transition-all ${!activeFilters.city
+                                ? 'text-slate-900 bg-slate-100'
                                 : 'text-slate-400 hover:text-slate-600'
                                 }`}
                         >
-                            {city}
+                            全部地区
                         </button>
-                    ))}
-                    <button
-                        onClick={() => setIsExpanded(!isExpanded)}
-                        className="px-2 py-1 text-[10px] text-slate-300 flex items-center hover:text-slate-500"
-                    >
-                        {isExpanded ? '收起' : '更多'}
-                        <span className="material-symbols-outlined text-[14px] ml-0.5">{isExpanded ? 'expand_less' : 'expand_more'}</span>
-                    </button>
+                        {(isExpanded ? cities : cities.slice(0, 7)).map(city => (
+                            <button
+                                key={city}
+                                onClick={() => onFilterChange({ ...activeFilters, city: city === activeFilters.city ? undefined : city })}
+                                className={`px-3 py-1 rounded text-[11px] font-medium transition-all ${activeFilters.city === city
+                                    ? 'text-primary bg-primary/5 font-bold'
+                                    : 'text-slate-400 hover:text-slate-600'
+                                    }`}
+                            >
+                                {city}
+                            </button>
+                        ))}
+                        {cities.length > 7 && (
+                            <button
+                                onClick={() => setIsExpanded(!isExpanded)}
+                                className="px-2 py-1 text-[10px] text-slate-300 flex items-center hover:text-slate-500"
+                            >
+                                {isExpanded ? '收起' : '更多'}
+                                <span className="material-symbols-outlined text-[14px] ml-0.5">{isExpanded ? 'expand_less' : 'expand_more'}</span>
+                            </button>
+                        )}
+                    </div>
                 </div>
-            </div>
+            )}
         </div>
     );
 };

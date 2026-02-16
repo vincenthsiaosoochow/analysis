@@ -111,3 +111,11 @@ class ExhibitionService:
         return db.query(Exhibition).join(UserExhibitionFavorite).filter(
             UserExhibitionFavorite.user_id == user_id
         ).order_by(desc(UserExhibitionFavorite.created_at)).all()
+    
+    @staticmethod
+    def get_available_cities(db: Session) -> List[str]:
+        """
+        获取所有有展览的城市列表（去重）
+        """
+        cities = db.query(Exhibition.city).filter(Exhibition.city.isnot(None)).distinct().all()
+        return [city[0] for city in cities if city[0]]

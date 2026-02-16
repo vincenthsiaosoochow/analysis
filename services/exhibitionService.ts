@@ -24,6 +24,15 @@ export const exhibitionAPI = {
         return response.data;
     },
 
+    // 获取有展览的城市列表
+    getCities: async (): Promise<string[]> => {
+        const response = await axios.get(`${API_BASE_URL}/api/exhibitions/cities`, {
+            headers: getAuthHeaders()
+        });
+        return response.data;
+    },
+
+
     // 获取详情
     getExhibition: async (id: number): Promise<Exhibition> => {
         const response = await axios.get(`${API_BASE_URL}/api/exhibitions/${id}`, {

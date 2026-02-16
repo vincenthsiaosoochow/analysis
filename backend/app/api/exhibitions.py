@@ -13,6 +13,14 @@ router = APIRouter(
     tags=["exhibitions"]
 )
 
+@router.get("/cities", response_model=List[str])
+def get_available_cities(db: Session = Depends(get_db)):
+    """
+    获取所有有展览的城市列表
+    """
+    return ExhibitionService.get_available_cities(db)
+
+
 @router.get("/", response_model=List[ExhibitionOut])
 def get_exhibitions(
     skip: int = 0,
