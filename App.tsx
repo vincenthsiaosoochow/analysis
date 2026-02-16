@@ -5,6 +5,8 @@ import { FEATURED_ARTWORKS, GLOBAL_ANALYSES } from './constants';
 import BottomNav from './components/BottomNav';
 import AnalysisView from './components/AnalysisView';
 import AdminDashboard from './pages/AdminDashboard';
+import Exhibitions from './pages/Exhibitions';
+import ExhibitionDetail from './pages/ExhibitionDetail';
 import { authAPI, analysisAPI } from './services/apiService';
 
 // Error Boundary Component
@@ -78,6 +80,7 @@ const App: React.FC = () => {
   };
 
   const [currentTab, setCurrentTab] = useState<AppTab>(AppTab.HOME);
+  const [activeExhibitionId, setActiveExhibitionId] = useState<number | null>(null);
   const [analysis, setAnalysis] = useState<ArtworkAnalysis | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [showAgreement, setShowAgreement] = useState(false);
@@ -603,6 +606,27 @@ const App: React.FC = () => {
             </div>
           )
           }
+
+          {/* Exhibition Tab */}
+          {currentTab === AppTab.EXHIBITIONS && (
+            activeExhibitionId ? (
+              <ExhibitionDetail
+                id={activeExhibitionId}
+                onBack={() => setActiveExhibitionId(null)}
+                onNavigateVenue={(venue) => {
+                  // TODO: Implement venue filter logic when going back to list
+                  setActiveExhibitionId(null);
+                  // Can pass filter state here if Exhibitions component supports it via prop or context
+                }}
+              />
+            ) : (
+              <Exhibitions
+                onNavigateDetail={(id) => setActiveExhibitionId(id)}
+                onBack={() => setCurrentTab(AppTab.HOME)}
+              />
+            )
+          )}
+
           <BottomNav currentTab={currentTab} onTabChange={setCurrentTab} />
         </>
       )}

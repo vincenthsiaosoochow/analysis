@@ -2,8 +2,10 @@
 export enum AppTab {
   HOME = 'home',
   DISCOVER = 'discover',
+  ANALYSIS = 'analysis',
   PROFILE = 'profile',
   ADMIN = 'admin',
+  EXHIBITIONS = 'exhibitions'
 }
 
 export interface ArtworkAnalysis {
@@ -56,6 +58,38 @@ export interface GalleryItem {
   authorAvatar: string;
   likes: string;
   title?: string;
+}
+// 展览状态枚举
+export enum ExhibitionStatus {
+  UPCOMING = "即将开始",
+  ONGOING = "进行中",
+  ENDED = "已结束"
+}
+
+// 展览数据结构
+export interface Exhibition {
+  id: number;
+  title: string;
+  cover_image: string;
+  venue: string;
+  start_date: string;
+  end_date: string;
+  address?: string;
+  city?: string;
+  country?: string;
+  continent?: string;
+  ticket_info?: string;
+  description?: string;
+  official_link?: string;
+  status: ExhibitionStatus;
+  is_favorited?: boolean;
+  created_at?: string;
+}
+
+export interface ExhibitionFilterState {
+  status?: string;
+  city?: string;
+  keyword?: string;
 }
 
 export interface FeaturedItem {

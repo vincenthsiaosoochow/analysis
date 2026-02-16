@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { adminService } from '../services/adminService';
+import { exhibitionAPI } from '../services/exhibitionService';
+import { Exhibition, ExhibitionStatus } from '../types';
 
 interface User {
     id: number;
@@ -26,9 +28,10 @@ interface Analysis {
 }
 
 const AdminDashboard: React.FC<{ onBack: () => void }> = ({ onBack }) => {
-    const [activeTab, setActiveTab] = useState<'users' | 'artworks'>('users');
+    const [activeTab, setActiveTab] = useState<'users' | 'artworks' | 'exhibitions'>('users');
     const [users, setUsers] = useState<User[]>([]);
     const [analyses, setAnalyses] = useState<Analysis[]>([]);
+    const [exhibitions, setExhibitions] = useState<Exhibition[]>([]);
     const [page, setPage] = useState(1);
     const [total, setTotal] = useState(0);
     const [loading, setLoading] = useState(false);
@@ -37,14 +40,24 @@ const AdminDashboard: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     const [selectedIds, setSelectedIds] = useState<number[]>([]);
     const [filterStatus, setFilterStatus] = useState<'valid' | 'deleted' | 'all'>('valid');
 
+    // Exhibition Creation State
+    const [showCreateModal, setShowCreateModal] = useState(false);
+    const [createForm, setCreateForm] = useState<Partial<Exhibition>>({
+        title: '',
+        venue: '',
+        start_date: '',
+        end_date: '',
+        city: '',
+        cover_image: '',
+        status: ExhibitionStatus.UPCOMING
+    });
+
     // Reset page when tab changes
     useEffect(() => {
         setPage(1);
         setSelectedIds([]);
-        // fetchData will be triggered by the page change effect below
-        // or we can call it explicitly if page is already 1
         if (page === 1) fetchData(1);
-    }, [activeTab, filterStatus]); // Add filterStatus dependecy
+    }, [activeTab, filterStatus]);
 
     // Fetch data when page changes
     useEffect(() => {
@@ -59,14 +72,21 @@ const AdminDashboard: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                 const res = await adminService.getUsers(pageNum, 20, searchTerm);
                 setUsers(res.items);
                 setTotal(res.total);
-            } else {
+            } else if (activeTab === 'artworks') {
                 const res = await adminService.getAnalyses(pageNum, 20, filterStatus);
                 setAnalyses(res.items);
                 setTotal(res.total);
+            } else if (activeTab === 'exhibitions') {
+                // Exhibition API usage (assuming no pagination in current simple API, or implementing logical slicing here)
+                // For simplicity, fetching all and slicing locally if API doesn't support page params fully yet
+                // But implementation plan said API supports skip/limit.
+                // Assuming service methods:
+                const allExhibitions = await exhibitionAPI.getExhibitions();
+                setExhibitions(allExhibitions);
+                setTotal(allExhibitions.length); // Client side pagination for now if API not returning total
             }
         } catch (error) {
             console.error("Failed to fetch admin data", error);
-            // alert("加载数据失败，请确认您有管理员权限"); 
         } finally {
             setLoading(false);
         }
@@ -91,7 +111,6 @@ const AdminDashboard: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         if (!window.confirm("确定要下架该报告吗？下架后将在前端隐藏。")) return;
         try {
             await adminService.deleteAnalysis(id);
-            // Refresh list
             fetchData(page);
         } catch (error) {
             alert("删除失败");
@@ -111,15 +130,34 @@ const AdminDashboard: React.FC<{ onBack: () => void }> = ({ onBack }) => {
 
     const handleBatchDelete = async () => {
         if (selectedIds.length === 0) return;
-        if (!window.confirm(`确定要批量删除选中的 ${selectedIds.length} 个分析报告吗？`)) return;
+        if (!window.confirm(`确定要批量删除选中的 ${selectedIds.length} 个项目吗？`)) return;
 
         try {
-            await adminService.batchDeleteAnalyses(selectedIds);
+            if (activeTab === 'artworks') {
+                await adminService.batchDeleteAnalyses(selectedIds);
+            } else if (activeTab === 'exhibitions') {
+                await exhibitionAPI.batchDelete(selectedIds);
+            }
             alert("批量删除成功");
             fetchData(page);
             setSelectedIds([]);
         } catch (error) {
             alert("批量删除失败");
+        }
+    };
+
+    // Exhibition Handlers
+    const handleCreateExhibition = async (e: React.FormEvent) => {
+        e.preventDefault();
+        try {
+            await exhibitionAPI.createExhibition(createForm);
+            alert("展览创建成功");
+            setShowCreateModal(false);
+            setCreateForm({ title: '', venue: '', start_date: '', end_date: '', city: '', cover_image: '', status: ExhibitionStatus.UPCOMING });
+            fetchData(page);
+        } catch (error) {
+            console.error(error);
+            alert("创建失败，请检查填写信息");
         }
     };
 
@@ -130,10 +168,12 @@ const AdminDashboard: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     };
 
     const toggleAll = () => {
-        if (selectedIds.length === analyses.length) {
+        const currentIds = activeTab === 'artworks' ? analyses.map(a => a.id) : activeTab === 'exhibitions' ? exhibitions.map(e => e.id) : [];
+
+        if (selectedIds.length === currentIds.length) {
             setSelectedIds([]);
         } else {
-            setSelectedIds(analyses.map(a => a.id));
+            setSelectedIds(currentIds);
         }
     };
 
@@ -150,20 +190,9 @@ const AdminDashboard: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                     </div>
                 </div>
                 <div className="flex bg-slate-100 p-1 rounded-lg">
-                    <button
-                        onClick={() => setActiveTab('users')}
-                        className={`px-4 py-1.5 text-sm font-medium rounded-md transition-all ${activeTab === 'users' ? 'bg-white shadow-sm text-fuhung-blue' : 'text-slate-500 hover:text-slate-700'
-                            }`}
-                    >
-                        会员管理
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('artworks')}
-                        className={`px-4 py-1.5 text-sm font-medium rounded-md transition-all ${activeTab === 'artworks' ? 'bg-white shadow-sm text-fuhung-blue' : 'text-slate-500 hover:text-slate-700'
-                            }`}
-                    >
-                        艺术品管理
-                    </button>
+                    <button onClick={() => setActiveTab('users')} className={`px-4 py-1.5 text-sm font-medium rounded-md transition-all ${activeTab === 'users' ? 'bg-white shadow-sm text-fuhung-blue' : 'text-slate-500 hover:text-slate-700'}`}>会员管理</button>
+                    <button onClick={() => setActiveTab('artworks')} className={`px-4 py-1.5 text-sm font-medium rounded-md transition-all ${activeTab === 'artworks' ? 'bg-white shadow-sm text-fuhung-blue' : 'text-slate-500 hover:text-slate-700'}`}>艺术品管理</button>
+                    <button onClick={() => setActiveTab('exhibitions')} className={`px-4 py-1.5 text-sm font-medium rounded-md transition-all ${activeTab === 'exhibitions' ? 'bg-white shadow-sm text-fuhung-blue' : 'text-slate-500 hover:text-slate-700'}`}>展览管理</button>
                 </div>
             </header>
 
@@ -244,24 +273,9 @@ const AdminDashboard: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                         <div className="flex justify-end gap-2 mb-2">
                             {/* Status Filter Dropdown */}
                             <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-lg p-1">
-                                <button
-                                    onClick={() => setFilterStatus('valid')}
-                                    className={`px-3 py-1.5 text-xs font-medium rounded ${filterStatus === 'valid' ? 'bg-fuhung-blue text-white' : 'text-slate-500 hover:bg-slate-100'}`}
-                                >
-                                    正常
-                                </button>
-                                <button
-                                    onClick={() => setFilterStatus('deleted')}
-                                    className={`px-3 py-1.5 text-xs font-medium rounded ${filterStatus === 'deleted' ? 'bg-red-500 text-white' : 'text-slate-500 hover:bg-slate-100'}`}
-                                >
-                                    回收站
-                                </button>
-                                <button
-                                    onClick={() => setFilterStatus('all')}
-                                    className={`px-3 py-1.5 text-xs font-medium rounded ${filterStatus === 'all' ? 'bg-slate-800 text-white' : 'text-slate-500 hover:bg-slate-100'}`}
-                                >
-                                    全部
-                                </button>
+                                <button onClick={() => setFilterStatus('valid')} className={`px-3 py-1.5 text-xs font-medium rounded ${filterStatus === 'valid' ? 'bg-fuhung-blue text-white' : 'text-slate-500 hover:bg-slate-100'}`}>正常</button>
+                                <button onClick={() => setFilterStatus('deleted')} className={`px-3 py-1.5 text-xs font-medium rounded ${filterStatus === 'deleted' ? 'bg-red-500 text-white' : 'text-slate-500 hover:bg-slate-100'}`}>回收站</button>
+                                <button onClick={() => setFilterStatus('all')} className={`px-3 py-1.5 text-xs font-medium rounded ${filterStatus === 'all' ? 'bg-slate-800 text-white' : 'text-slate-500 hover:bg-slate-100'}`}>全部</button>
                             </div>
                         </div>
 
@@ -270,12 +284,7 @@ const AdminDashboard: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                             {selectedIds.length > 0 && (
                                 <div className="px-6 py-3 bg-red-50 border-b border-red-100 flex items-center justify-between">
                                     <span className="text-sm text-red-700 font-medium">已选择 {selectedIds.length} 个项目</span>
-                                    <button
-                                        onClick={handleBatchDelete}
-                                        className="px-4 py-1.5 bg-red-600 text-white rounded-lg text-sm font-bold shadow-sm hover:bg-red-700 transition-colors"
-                                    >
-                                        批量删除
-                                    </button>
+                                    <button onClick={handleBatchDelete} className="px-4 py-1.5 bg-red-600 text-white rounded-lg text-sm font-bold shadow-sm hover:bg-red-700 transition-colors">批量删除</button>
                                 </div>
                             )}
 
@@ -283,12 +292,7 @@ const AdminDashboard: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                                 <thead className="bg-slate-50 text-slate-500 font-medium">
                                     <tr>
                                         <th className="px-6 py-3 w-10">
-                                            <input
-                                                type="checkbox"
-                                                className="rounded border-slate-300"
-                                                checked={analyses.length > 0 && selectedIds.length === analyses.length}
-                                                onChange={toggleAll}
-                                            />
+                                            <input type="checkbox" className="rounded border-slate-300" checked={analyses.length > 0 && selectedIds.length === analyses.length} onChange={toggleAll} />
                                         </th>
                                         <th className="px-6 py-3">ID</th>
                                         <th className="px-6 py-3">预览</th>
@@ -303,12 +307,7 @@ const AdminDashboard: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                                     {analyses.map((item) => (
                                         <tr key={item.id} className={`hover:bg-slate-50 ${selectedIds.includes(item.id) ? 'bg-blue-50/30' : ''}`}>
                                             <td className="px-6 py-4">
-                                                <input
-                                                    type="checkbox"
-                                                    className="rounded border-slate-300"
-                                                    checked={selectedIds.includes(item.id)}
-                                                    onChange={() => toggleSelection(item.id)}
-                                                />
+                                                <input type="checkbox" className="rounded border-slate-300" checked={selectedIds.includes(item.id)} onChange={() => toggleSelection(item.id)} />
                                             </td>
                                             <td className="px-6 py-4 text-slate-400">#{item.id}</td>
                                             <td className="px-6 py-4">
@@ -316,42 +315,9 @@ const AdminDashboard: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                                                     <img src={item.image_url} className="w-full h-full object-cover" />
                                                 </div>
                                             </td>
-                                            <td
-                                                className="px-6 py-4 relative group"
-                                                onMouseEnter={() => setHoveredId(item.id)}
-                                                onMouseLeave={() => setHoveredId(null)}
-                                            >
+                                            <td className="px-6 py-4 relative group" onMouseEnter={() => setHoveredId(item.id)} onMouseLeave={() => setHoveredId(null)}>
                                                 <div className="font-medium text-slate-900 line-clamp-1 cursor-help">{item.title}</div>
                                                 <div className="text-slate-500 text-xs">{item.artist}</div>
-
-                                                {/* Hover Preview Tooltip */}
-                                                {hoveredId === item.id && (
-                                                    <div className="absolute left-0 top-full mt-2 w-64 bg-white border border-slate-100 rounded-xl shadow-xl z-20 p-4 animate-fade-in">
-                                                        <h4 className="text-xs font-bold text-slate-900 mb-2 border-b border-slate-100 pb-2">分析预览</h4>
-                                                        {item.preview_info ? (
-                                                            <div className="space-y-2 text-xs">
-                                                                <div className="flex justify-between">
-                                                                    <span className="text-slate-400">评分</span>
-                                                                    <span className="font-bold text-fuhung-blue">{item.preview_info.rating}</span>
-                                                                </div>
-                                                                <div className="flex justify-between">
-                                                                    <span className="text-slate-400">风格</span>
-                                                                    <span className="text-slate-700">{item.preview_info.style}</span>
-                                                                </div>
-                                                                <div>
-                                                                    <span className="text-slate-400 block mb-1">内容摘要</span>
-                                                                    <p className="text-slate-600 leading-relaxed text-[10px] bg-slate-50 p-2 rounded">
-                                                                        {item.preview_info.summary}
-                                                                    </p>
-                                                                </div>
-                                                            </div>
-                                                        ) : (
-                                                            <div className="text-center text-slate-400 text-xs py-4">
-                                                                暂无分析数据
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                )}
                                             </td>
                                             <td className="px-6 py-4">
                                                 <div className="font-medium">{item.user_name}</div>
@@ -368,12 +334,7 @@ const AdminDashboard: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                                             </td>
                                             <td className="px-6 py-4 text-right">
                                                 {(item.status === '正常' || item.status === '分析失败') && (
-                                                    <button
-                                                        onClick={() => handleDeleteAnalysis(item.id)}
-                                                        className="text-red-500 hover:text-red-700 text-xs font-medium border border-red-200 hover:bg-red-50 px-3 py-1.5 rounded transition-colors"
-                                                    >
-                                                        删除
-                                                    </button>
+                                                    <button onClick={() => handleDeleteAnalysis(item.id)} className="text-red-500 hover:text-red-700 text-xs font-medium border border-red-200 hover:bg-red-50 px-3 py-1.5 rounded transition-colors">删除</button>
                                                 )}
                                             </td>
                                         </tr>
@@ -389,25 +350,171 @@ const AdminDashboard: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                     </div>
                 )}
 
-                {/* Pagination Simple */}
+                {activeTab === 'exhibitions' && (
+                    <div className="space-y-4">
+                        <div className="flex justify-end gap-2 mb-2">
+                            <button
+                                onClick={() => setShowCreateModal(true)}
+                                className="px-4 py-2 bg-primary text-white rounded-lg text-sm font-bold shadow hover:bg-blue-600 flex items-center gap-2"
+                            >
+                                <span className="material-symbols-outlined">add</span>
+                                新增展览
+                            </button>
+                        </div>
+
+                        <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+                            {/* Batch Action Toolbar */}
+                            {selectedIds.length > 0 && (
+                                <div className="px-6 py-3 bg-red-50 border-b border-red-100 flex items-center justify-between">
+                                    <span className="text-sm text-red-700 font-medium">已选择 {selectedIds.length} 个展览</span>
+                                    <button onClick={handleBatchDelete} className="px-4 py-1.5 bg-red-600 text-white rounded-lg text-sm font-bold shadow-sm hover:bg-red-700 transition-colors">批量删除</button>
+                                </div>
+                            )}
+
+                            <table className="w-full text-sm text-left">
+                                <thead className="bg-slate-50 text-slate-500 font-medium">
+                                    <tr>
+                                        <th className="px-6 py-3 w-10">
+                                            <input type="checkbox" className="rounded border-slate-300" checked={exhibitions.length > 0 && selectedIds.length === exhibitions.length} onChange={toggleAll} />
+                                        </th>
+                                        <th className="px-6 py-3">ID</th>
+                                        <th className="px-6 py-3">封面</th>
+                                        <th className="px-6 py-3">标题</th>
+                                        <th className="px-6 py-3">展馆/城市</th>
+                                        <th className="px-6 py-3">时间</th>
+                                        <th className="px-6 py-3">状态</th>
+                                        <th className="px-6 py-3 text-right">操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-100">
+                                    {exhibitions.map((item) => (
+                                        <tr key={item.id} className={`hover:bg-slate-50 ${selectedIds.includes(item.id) ? 'bg-blue-50/30' : ''}`}>
+                                            <td className="px-6 py-4">
+                                                <input type="checkbox" className="rounded border-slate-300" checked={selectedIds.includes(item.id)} onChange={() => toggleSelection(item.id)} />
+                                            </td>
+                                            <td className="px-6 py-4 text-slate-400">#{item.id}</td>
+                                            <td className="px-6 py-4">
+                                                <div className="size-16 rounded bg-slate-100 overflow-hidden border border-slate-200">
+                                                    <img src={item.cover_image} className="w-full h-full object-cover" />
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4 font-bold max-w-xs truncate" title={item.title}>{item.title}</td>
+                                            <td className="px-6 py-4 text-slate-600">
+                                                <div>{item.venue}</div>
+                                                <div className="text-xs text-slate-400">{item.city}</div>
+                                            </td>
+                                            <td className="px-6 py-4 text-slate-500 text-xs">
+                                                {new Date(item.start_date).toLocaleDateString()}
+                                                <br />
+                                                {new Date(item.end_date).toLocaleDateString()}
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <span className={`px-2 py-0.5 rounded text-xs font-bold border ${item.status === ExhibitionStatus.ONGOING ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
+                                                        item.status === ExhibitionStatus.UPCOMING ? 'bg-amber-50 text-amber-600 border-amber-100' :
+                                                            'bg-slate-50 text-slate-500 border-slate-100'
+                                                    }`}>
+                                                    {item.status}
+                                                </span>
+                                            </td>
+                                            <td className="px-6 py-4 text-right">
+                                                <button
+                                                    onClick={() => exhibitionAPI.deleteExhibition(item.id).then(() => fetchData(page))}
+                                                    className="text-red-500 hover:text-red-700 text-xs font-medium border border-red-200 hover:bg-red-50 px-3 py-1.5 rounded transition-colors"
+                                                >
+                                                    删除
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                    {exhibitions.length === 0 && !loading && (
+                                        <tr>
+                                            <td colSpan={8} className="px-6 py-10 text-center text-slate-400">暂无展览数据</td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
+
+                        </div>
+                    </div>
+                )}
+
+                {/* Shared Pagination - can be improved to handle per-tab state if needed */}
                 <div className="flex justify-center mt-6 gap-2">
-                    <button
-                        disabled={page <= 1}
-                        onClick={() => setPage(p => p - 1)}
-                        className="px-3 py-1 border rounded disabled:opacity-50"
-                    >
-                        上一页
-                    </button>
+                    <button disabled={page <= 1} onClick={() => setPage(p => p - 1)} className="px-3 py-1 border rounded disabled:opacity-50">上一页</button>
                     <span className="px-3 py-1 text-slate-500">第 {page} 页</span>
-                    <button
-                        disabled={page * 20 >= total}
-                        onClick={() => setPage(p => p + 1)}
-                        className="px-3 py-1 border rounded disabled:opacity-50"
-                    >
-                        下一页
-                    </button>
+                    <button disabled={page * 20 >= total} onClick={() => setPage(p => p + 1)} className="px-3 py-1 border rounded disabled:opacity-50">下一页</button>
                 </div>
             </main>
+
+            {/* Create Exhibition Modal */}
+            {showCreateModal && (
+                <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4 backdrop-blur-sm">
+                    <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl">
+                        <div className="p-6 border-b border-slate-100 flex items-center justify-between">
+                            <h3 className="text-xl font-bold text-slate-900">新增展览</h3>
+                            <button onClick={() => setShowCreateModal(false)} className="material-symbols-outlined text-slate-400 hover:text-slate-600">close</button>
+                        </div>
+                        <form onSubmit={handleCreateExhibition} className="p-8 space-y-6">
+                            <div className="grid grid-cols-2 gap-6">
+                                <div className="space-y-1.5 col-span-2">
+                                    <label className="text-xs font-bold text-slate-500 uppercase">展览名称</label>
+                                    <input required className="w-full px-4 py-3 bg-slate-50 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-primary/20"
+                                        value={createForm.title} onChange={e => setCreateForm({ ...createForm, title: e.target.value })} />
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="text-xs font-bold text-slate-500 uppercase">展馆</label>
+                                    <input required className="w-full px-4 py-3 bg-slate-50 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-primary/20"
+                                        value={createForm.venue} onChange={e => setCreateForm({ ...createForm, venue: e.target.value })} />
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="text-xs font-bold text-slate-500 uppercase">城市</label>
+                                    <input required className="w-full px-4 py-3 bg-slate-50 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-primary/20"
+                                        value={createForm.city} onChange={e => setCreateForm({ ...createForm, city: e.target.value })} />
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="text-xs font-bold text-slate-500 uppercase">开始时间</label>
+                                    <input type="datetime-local" required className="w-full px-4 py-3 bg-slate-50 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-primary/20"
+                                        value={createForm.start_date} onChange={e => setCreateForm({ ...createForm, start_date: e.target.value })} />
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="text-xs font-bold text-slate-500 uppercase">结束时间</label>
+                                    <input type="datetime-local" required className="w-full px-4 py-3 bg-slate-50 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-primary/20"
+                                        value={createForm.end_date} onChange={e => setCreateForm({ ...createForm, end_date: e.target.value })} />
+                                </div>
+                                <div className="space-y-1.5 col-span-2">
+                                    <label className="text-xs font-bold text-slate-500 uppercase">封面图 URL</label>
+                                    <input required className="w-full px-4 py-3 bg-slate-50 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-primary/20"
+                                        value={createForm.cover_image} onChange={e => setCreateForm({ ...createForm, cover_image: e.target.value })} placeholder="https://..." />
+                                </div>
+                                <div className="space-y-1.5 col-span-2">
+                                    <label className="text-xs font-bold text-slate-500 uppercase">详细地址</label>
+                                    <input className="w-full px-4 py-3 bg-slate-50 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-primary/20"
+                                        value={createForm.address || ''} onChange={e => setCreateForm({ ...createForm, address: e.target.value })} />
+                                </div>
+                                <div className="space-y-1.5 col-span-2">
+                                    <label className="text-xs font-bold text-slate-500 uppercase">门票信息</label>
+                                    <textarea className="w-full px-4 py-3 bg-slate-50 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-primary/20 min-h-[80px]"
+                                        value={createForm.ticket_info || ''} onChange={e => setCreateForm({ ...createForm, ticket_info: e.target.value })}></textarea>
+                                </div>
+                                <div className="space-y-1.5 col-span-2">
+                                    <label className="text-xs font-bold text-slate-500 uppercase">详细介绍</label>
+                                    <textarea className="w-full px-4 py-3 bg-slate-50 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-primary/20 min-h-[120px]"
+                                        value={createForm.description || ''} onChange={e => setCreateForm({ ...createForm, description: e.target.value })}></textarea>
+                                </div>
+                                <div className="space-y-1.5 col-span-2">
+                                    <label className="text-xs font-bold text-slate-500 uppercase">官方链接</label>
+                                    <input className="w-full px-4 py-3 bg-slate-50 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-primary/20"
+                                        value={createForm.official_link || ''} onChange={e => setCreateForm({ ...createForm, official_link: e.target.value })} placeholder="https://..." />
+                                </div>
+                            </div>
+                            <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
+                                <button type="button" onClick={() => setShowCreateModal(false)} className="px-6 py-3 rounded-xl font-bold text-slate-500 hover:bg-slate-50 transition-colors">取消</button>
+                                <button type="submit" className="px-8 py-3 bg-primary text-white rounded-xl font-bold shadow-lg shadow-blue-500/20 active:scale-95 transition-all">确认创建</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
