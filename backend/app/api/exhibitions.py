@@ -6,7 +6,7 @@ from app.database import get_db
 from app.models.user import User
 from app.schemas.exhibition import ExhibitionCreate, ExhibitionOut, ExhibitionUpdate
 from app.services.exhibition_service import ExhibitionService
-from app.utils.dependencies import get_current_user_optional, get_current_admin
+from app.utils.dependencies import get_current_user, get_current_user_optional, get_current_admin
 
 router = APIRouter(
     prefix="/exhibitions",
