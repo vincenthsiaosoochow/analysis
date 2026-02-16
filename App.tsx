@@ -1,6 +1,6 @@
 
 import React, { useState, useCallback, useRef, useMemo, useEffect } from 'react';
-import { AppTab, ArtworkAnalysis, UserProfile } from './types';
+import { AppTab, ArtworkAnalysis, UserProfile, Exhibition } from './types';
 import { FEATURED_ARTWORKS, GLOBAL_ANALYSES } from './constants';
 import BottomNav from './components/BottomNav';
 import AnalysisView from './components/AnalysisView';
@@ -80,7 +80,12 @@ const App: React.FC = () => {
   };
 
   const [currentTab, setCurrentTab] = useState<AppTab>(AppTab.HOME);
+  const [currentExhibitionId, setCurrentExhibitionId] = useState<number | null>(null);
   const [activeExhibitionId, setActiveExhibitionId] = useState<number | null>(null);
+
+  // User Profile - Collection Type
+  const [collectionType, setCollectionType] = useState<'artwork' | 'exhibition'>('artwork');
+  const [myExhibitions, setMyExhibitions] = useState<Exhibition[]>([]);
   const [analysis, setAnalysis] = useState<ArtworkAnalysis | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [showAgreement, setShowAgreement] = useState(false);
@@ -108,6 +113,28 @@ const App: React.FC = () => {
       setMyAnalyses(analyses);
     } catch (err) {
       console.error("Failed to fetch my analyses", err);
+    }
+  };
+
+  const refreshProfile = async () => {
+    if (!isLoggedIn) return;
+    try {
+      const profile = await authAPI.getUserProfile();
+      setUserProfile(profile);
+      await refreshUserAnalyses();
+      await refreshMyExhibitions();
+    } catch (err) {
+      console.error("Failed to fetch user profile", err);
+    }
+  };
+
+  const refreshMyExhibitions = async () => {
+    try {
+      const { exhibitionAPI } = await import('./services/exhibitionService');
+      const exhibitions = await exhibitionAPI.getMyFavorites();
+      setMyExhibitions(exhibitions);
+    } catch (err) {
+      console.error("Failed to fetch my exhibitions", err);
     }
   };
 
@@ -578,26 +605,88 @@ const App: React.FC = () => {
                       <div className="flex items-center gap-2 mb-4 px-2">
                         <span className="material-symbols-outlined text-primary">collections_bookmark</span>
                         <h3 className="text-lg font-bold text-slate-800">我的收藏</h3>
-                        <span className="text-[10px] font-bold text-slate-400 uppercase bg-slate-100 px-2 py-0.5 rounded-full">{myAnalyses.length}</span>
+                        <span className="text-[10px] font-bold text-slate-400 uppercase bg-slate-100 px-2 py-0.5 rounded-full">
+                          {collectionType === 'artwork' ? myAnalyses.length : myExhibitions.length}
+                        </span>
                       </div>
 
-                      {myAnalyses.length === 0 ? (
-                        <div className="p-10 text-center space-y-2 bg-slate-50 rounded-2xl border border-slate-100 border-dashed">
-                          <span className="material-symbols-outlined text-slate-300 text-4xl">folder_open</span>
-                          <p className="text-xs text-slate-400">暂无收藏或分析记录</p>
-                        </div>
-                      ) : (
-                        <div className="masonry-container px-1">
-                          {myAnalyses.map(item => (
-                            <div key={item.id} className="masonry-item bg-white rounded-2xl overflow-hidden border border-slate-100 shadow-sm transition-transform active:scale-[0.98] mb-3" onClick={() => setAnalysis(item)}>
-                              <img src={item.imageUrl} className="w-full h-auto object-cover" crossOrigin="anonymous" loading="lazy" />
-                              <div className="p-3">
-                                <p className="text-xs font-bold truncate text-slate-900">{item.title}</p>
-                                <p className="text-[10px] text-slate-400 truncate">{item.artist}</p>
+                      {/* Collection Type Tabs */}
+                      <div className="flex gap-2 mb-4 px-2">
+                        <button
+                          onClick={() => setCollectionType('artwork')}
+                          className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all ${collectionType === 'artwork'
+                            ? 'bg-primary text-white shadow-md'
+                            : 'bg-slate-50 text-slate-500 hover:bg-slate-100'
+                            }`}
+                        >
+                          艺术品
+                        </button>
+                        <button
+                          onClick={() => setCollectionType('exhibition')}
+                          className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all ${collectionType === 'exhibition'
+                            ? 'bg-primary text-white shadow-md'
+                            : 'bg-slate-50 text-slate-500 hover:bg-slate-100'
+                            }`}
+                        >
+                          展览
+                        </button>
+                      </div>
+
+                      {/* Artwork Collection */}
+                      {collectionType === 'artwork' && (
+                        myAnalyses.length === 0 ? (
+                          <div className="p-10 text-center space-y-2 bg-slate-50 rounded-2xl border border-slate-100 border-dashed">
+                            <span className="material-symbols-outlined text-slate-300 text-4xl">palette</span>
+                            <p className="text-xs text-slate-400">暂无收藏的艺术品</p>
+                          </div>
+                        ) : (
+                          <div className="masonry-container px-1">
+                            {myAnalyses.map(item => (
+                              <div key={item.id} className="masonry-item bg-white rounded-2xl overflow-hidden border border-slate-100 shadow-sm transition-transform active:scale-[0.98] mb-3" onClick={() => setAnalysis(item)}>
+                                <img src={item.imageUrl} className="w-full h-auto object-cover" crossOrigin="anonymous" loading="lazy" />
+                                <div className="p-3">
+                                  <p className="text-xs font-bold truncate text-slate-900">{item.title}</p>
+                                  <p className="text-[10px] text-slate-400 truncate">{item.artist}</p>
+                                </div>
                               </div>
-                            </div>
-                          ))}
-                        </div>
+                            ))}
+                          </div>
+                        )
+                      )}
+
+                      {/* Exhibition Collection */}
+                      {collectionType === 'exhibition' && (
+                        myExhibitions.length === 0 ? (
+                          <div className="p-10 text-center space-y-2 bg-slate-50 rounded-2xl border border-slate-100 border-dashed">
+                            <span className="material-symbols-outlined text-slate-300 text-4xl">event</span>
+                            <p className="text-xs text-slate-400">暂无收藏的展览</p>
+                          </div>
+                        ) : (
+                          <div className="space-y-3 px-1">
+                            {myExhibitions.map(item => (
+                              <div
+                                key={item.id}
+                                className="bg-white rounded-xl overflow-hidden border border-slate-100 shadow-sm transition-transform active:scale-[0.98] flex gap-3 p-3"
+                                onClick={() => {
+                                  setActiveExhibitionId(item.id);
+                                  setCurrentTab(AppTab.EXHIBITIONS);
+                                }}
+                              >
+                                <img src={item.cover_image} className="w-20 h-24 object-cover rounded-lg" />
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm font-bold truncate text-slate-900">{item.title}</p>
+                                  <p className="text-xs text-slate-500 truncate">{item.venue}</p>
+                                  <p className="text-[10px] text-slate-400 mt-1">{item.city}</p>
+                                  <div className="flex items-center gap-1 mt-2">
+                                    <span className="text-[10px] px-2 py-0.5 rounded bg-slate-100 text-slate-600">
+                                      {new Date(item.start_date).toLocaleDateString()}
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )
                       )}
                     </div>
                     <button onClick={() => { authAPI.logout(); setIsLoggedIn(false); }} className="w-full py-4 text-red-500 font-bold border border-red-50 px-4 rounded-xl active:bg-red-50/50 transition-colors">退出登录</button>
