@@ -3,11 +3,17 @@
 处理图片的保存和管理
 """
 import os
-import base64
+import uuid
+from pathlib import Path
 from typing import Tuple
 from fastapi import UploadFile, HTTPException
 
 from app.config import settings
+
+
+# 上传目录配置
+UPLOAD_DIR = Path("static/uploads")
+UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
 
 def validate_image(file: UploadFile) -> None:
@@ -24,10 +30,12 @@ def validate_image(file: UploadFile) -> None:
 
 async def save_uploaded_image(file: UploadFile) -> Tuple[str, str]:
     """
-    保存上传的图片文件
+    保存上传的图片文件到磁盘
     
     Returns:
-        (image_url, base64_data) 元组
+        (image_url, file_path) 元组
+        - image_url: 可访问的 HTTP URL（如 /uploads/xxx.jpg）
+        - file_path: 文件在磁盘上的完整路径
     """
     # 验证图片
     validate_image(file)
@@ -42,8 +50,17 @@ async def save_uploaded_image(file: UploadFile) -> Tuple[str, str]:
             detail=f"文件大小超出限制（最大 {settings.MAX_UPLOAD_SIZE / 1024 / 1024}MB）"
         )
     
-    # 转换为 base64
-    base64_data = base64.b64encode(content).decode('utf-8')
-    image_url = f"data:{file.content_type};base64,{base64_data}"
+    # 生成唯一文件名（使用 UUID 防止冲突）
+    file_extension = Path(file.filename).suffix if file.filename else ".jpg"
+    unique_filename = f"{uuid.uuid4().hex}{file_extension}"
+    file_path = UPLOAD_DIR / unique_filename
     
-    return image_url, base64_data
+    # 保存文件到磁盘
+    with open(file_path, "wb") as f:
+        f.write(content)
+    
+    # 返回可访问的 URL（相对于静态文件根目录）
+    # FastAPI 会通过 StaticFiles 挂载点提供访问
+    image_url = f"/uploads/{unique_filename}"
+    
+    return image_url, str(file_path)

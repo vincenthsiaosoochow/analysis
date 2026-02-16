@@ -88,6 +88,9 @@ app.mount("/api", api_app)
 # 确保在 Docker 环境中 static 目录存在
 if os.path.exists("static"):
     app.mount("/assets", StaticFiles(directory="static/assets"), name="assets")
+    # 挂载上传文件目录
+    if os.path.exists("static/uploads"):
+        app.mount("/uploads", StaticFiles(directory="static/uploads"), name="uploads")
 
     # SPA 路由处理 - 必须放在最后
     @app.get("/{full_path:path}")
