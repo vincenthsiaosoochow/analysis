@@ -1,12 +1,9 @@
 import axios from 'axios';
 import { Exhibition, ExhibitionFilterState } from '../types';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+const API_BASE_URL = ''; // Rely on relative path / proxy
 
-// Create a configured axios instance (reuse existing logic if possible, but for isolation creating new one or using fetch wrapper)
-// Assuming we can import 'authAPI' or similar to get token, or use interceptors. 
-// For now, I'll use standard axios with localStorage token retrieval.
-
+// Create a configured axios instance
 const getAuthHeaders = () => {
     const token = localStorage.getItem('auth_token');
     return token ? { Authorization: `Bearer ${token}` } : {};
@@ -20,7 +17,7 @@ export const exhibitionAPI = {
         if (params?.city) queryParams.append('city', params.city);
         if (params?.keyword) queryParams.append('keyword', params.keyword);
 
-        const response = await axios.get(`${API_BASE_URL}/exhibitions/`, {
+        const response = await axios.get(`${API_BASE_URL}/api/exhibitions/`, {
             params: queryParams,
             headers: getAuthHeaders()
         });
@@ -29,7 +26,7 @@ export const exhibitionAPI = {
 
     // 获取详情
     getExhibition: async (id: number): Promise<Exhibition> => {
-        const response = await axios.get(`${API_BASE_URL}/exhibitions/${id}`, {
+        const response = await axios.get(`${API_BASE_URL}/api/exhibitions/${id}`, {
             headers: getAuthHeaders()
         });
         return response.data;
@@ -37,7 +34,7 @@ export const exhibitionAPI = {
 
     // 我的收藏
     getMyFavorites: async (): Promise<Exhibition[]> => {
-        const response = await axios.get(`${API_BASE_URL}/exhibitions/my/favorites`, {
+        const response = await axios.get(`${API_BASE_URL}/api/users/me/exhibitions`, {
             headers: getAuthHeaders()
         });
         return response.data;
@@ -45,7 +42,7 @@ export const exhibitionAPI = {
 
     // 收藏/取消收藏
     toggleFavorite: async (id: number): Promise<{ is_favorited: boolean }> => {
-        const response = await axios.post(`${API_BASE_URL}/exhibitions/${id}/favorite`, {}, {
+        const response = await axios.post(`${API_BASE_URL}/api/exhibitions/${id}/favorite`, {}, {
             headers: getAuthHeaders()
         });
         return response.data;
@@ -53,7 +50,7 @@ export const exhibitionAPI = {
 
     // 管理员：新增
     createExhibition: async (data: Partial<Exhibition>): Promise<Exhibition> => {
-        const response = await axios.post(`${API_BASE_URL}/exhibitions/`, data, {
+        const response = await axios.post(`${API_BASE_URL}/api/exhibitions/`, data, {
             headers: getAuthHeaders()
         });
         return response.data;
@@ -61,14 +58,14 @@ export const exhibitionAPI = {
 
     // 管理员：删除
     deleteExhibition: async (id: number): Promise<void> => {
-        await axios.delete(`${API_BASE_URL}/exhibitions/${id}`, {
+        await axios.delete(`${API_BASE_URL}/api/exhibitions/${id}`, {
             headers: getAuthHeaders()
         });
     },
 
     // 管理员：批量删除
     batchDelete: async (ids: number[]): Promise<{ deleted_count: number }> => {
-        const response = await axios.post(`${API_BASE_URL}/exhibitions/batch-delete`, ids, {
+        const response = await axios.post(`${API_BASE_URL}/api/exhibitions/batch-delete`, ids, {
             headers: getAuthHeaders()
         });
         return response.data;
