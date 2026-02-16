@@ -31,26 +31,27 @@ def get_exhibitions(
     db: Session = Depends(get_db),
     current_user: Optional[User] = Depends(get_current_user_optional)  # Optional auth to check favorites status
 ):
+    from app.utils.image_utils import create_thumbnail_from_data_uri
+    
     exhibitions = ExhibitionService.get_exhibitions(db, skip, limit, status, city, keyword)
     
-    # If user is logged in, mark which ones are favorited
-    # Note: This N+1 check is simple but could be optimized if needed
+    # 压缩图片并标记收藏状态
+    result = []
+    favorited_ids = set()
+    
     if current_user:
         # Get all favorited IDs for this user
         favorites = ExhibitionService.get_user_favorites(db, current_user.id)
-        fav_ids = {fav.id for fav in favorites}
-        
-        # We need to return schema objects with is_favorited set
-        results = []
-        for ex in exhibitions:
-            # Manually converting to schema to set extra field
-            # Pydantic via 'from_attributes' usually works but we need to inject is_favorited
-            ex_data = ExhibitionOut.model_validate(ex)
-            ex_data.is_favorited = ex.id in fav_ids
-            results.append(ex_data)
-        return results
-
-    return exhibitions
+        favorited_ids = {fav.id for fav in favorites}
+    
+    for ex in exhibitions:
+        ex_dict = ExhibitionOut.model_validate(ex).model_dump()
+        # 压缩封面图为缩略图（400px宽，65%质量）- 大小减少约90%
+        ex_dict['cover_image'] = create_thumbnail_from_data_uri(ex_dict['cover_image'], max_width=400, quality=65)
+        ex_dict['is_favorited'] = ex.id in favorited_ids
+        result.append(ExhibitionOut(**ex_dict))
+    
+    return result
 
 @router.get("/my/favorites", response_model=List[ExhibitionOut])
 def get_my_favorites(
