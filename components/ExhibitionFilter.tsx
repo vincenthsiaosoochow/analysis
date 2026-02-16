@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ExhibitionStatus } from '../types';
+import { ExhibitionStatus, ExhibitionStatusLabel } from '../types';
 
 interface ExhibitionFilterProps {
     onFilterChange: (filters: { status?: string; city?: string }) => void;
@@ -20,8 +20,8 @@ const ExhibitionFilter: React.FC<ExhibitionFilterProps> = ({ onFilterChange, act
                 <button
                     onClick={() => onFilterChange({ ...activeFilters, status: undefined })}
                     className={`px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all ${!activeFilters.status
-                            ? 'bg-slate-900 text-white shadow-lg shadow-slate-900/20'
-                            : 'bg-white text-slate-500 border border-slate-100 hover:bg-slate-50'
+                        ? 'bg-slate-900 text-white shadow-lg shadow-slate-900/20'
+                        : 'bg-white text-slate-500 border border-slate-100 hover:bg-slate-50'
                         }`}
                 >
                     全部状态
@@ -30,27 +30,14 @@ const ExhibitionFilter: React.FC<ExhibitionFilterProps> = ({ onFilterChange, act
                     <button
                         key={status}
                         onClick={() => {
-                            // Map UI status label back to enum value logic if needed, 
-                            // but here we use the enum values directly which are Chinese strings "进行中" etc.
-                            // However, backend might expect english keys "ongoing" etc.
-                            // Let's check backend service logic. 
-                            // Backend service expects "upcoming", "ongoing", "ended".
-                            // So we need a mapping here.
-                            let backendStatus = '';
-                            if (status === ExhibitionStatus.UPCOMING) backendStatus = 'upcoming';
-                            if (status === ExhibitionStatus.ONGOING) backendStatus = 'ongoing';
-                            if (status === ExhibitionStatus.ENDED) backendStatus = 'ended';
-
-                            onFilterChange({ ...activeFilters, status: backendStatus === activeFilters.status ? undefined : backendStatus });
+                            onFilterChange({ ...activeFilters, status: status === activeFilters.status ? undefined : status });
                         }}
-                        className={`px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all ${(status === ExhibitionStatus.UPCOMING && activeFilters.status === 'upcoming') ||
-                                (status === ExhibitionStatus.ONGOING && activeFilters.status === 'ongoing') ||
-                                (status === ExhibitionStatus.ENDED && activeFilters.status === 'ended')
-                                ? 'bg-primary text-white shadow-lg shadow-primary/20'
-                                : 'bg-white text-slate-500 border border-slate-100 hover:bg-slate-50'
+                        className={`px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all ${activeFilters.status === status
+                            ? 'bg-primary text-white shadow-lg shadow-primary/20'
+                            : 'bg-white text-slate-500 border border-slate-100 hover:bg-slate-50'
                             }`}
                     >
-                        {status}
+                        {ExhibitionStatusLabel[status] || status}
                     </button>
                 ))}
             </div>
@@ -61,8 +48,8 @@ const ExhibitionFilter: React.FC<ExhibitionFilterProps> = ({ onFilterChange, act
                     <button
                         onClick={() => onFilterChange({ ...activeFilters, city: undefined })}
                         className={`px-3 py-1 rounded text-[11px] font-medium transition-all ${!activeFilters.city
-                                ? 'text-slate-900 bg-slate-100'
-                                : 'text-slate-400 hover:text-slate-600'
+                            ? 'text-slate-900 bg-slate-100'
+                            : 'text-slate-400 hover:text-slate-600'
                             }`}
                     >
                         全部地区
@@ -72,8 +59,8 @@ const ExhibitionFilter: React.FC<ExhibitionFilterProps> = ({ onFilterChange, act
                             key={city}
                             onClick={() => onFilterChange({ ...activeFilters, city: city === activeFilters.city ? undefined : city })}
                             className={`px-3 py-1 rounded text-[11px] font-medium transition-all ${activeFilters.city === city
-                                    ? 'text-primary bg-primary/5 font-bold'
-                                    : 'text-slate-400 hover:text-slate-600'
+                                ? 'text-primary bg-primary/5 font-bold'
+                                : 'text-slate-400 hover:text-slate-600'
                                 }`}
                         >
                             {city}

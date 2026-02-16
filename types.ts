@@ -59,12 +59,19 @@ export interface GalleryItem {
   likes: string;
   title?: string;
 }
-// 展览状态枚举
+// 展览状态枚举（值与后端保持一致）
 export enum ExhibitionStatus {
-  UPCOMING = "即将开始",
-  ONGOING = "进行中",
-  ENDED = "已结束"
+  UPCOMING = "upcoming",
+  ONGOING = "ongoing",
+  ENDED = "ended"
 }
+
+// 展览状态中文显示标签
+export const ExhibitionStatusLabel: Record<ExhibitionStatus, string> = {
+  [ExhibitionStatus.UPCOMING]: "即将开始",
+  [ExhibitionStatus.ONGOING]: "进行中",
+  [ExhibitionStatus.ENDED]: "已结束",
+};
 
 // 展览数据结构
 export interface Exhibition {

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Exhibition, ExhibitionStatus } from '../types';
+import { Exhibition, ExhibitionStatus, ExhibitionStatusLabel } from '../types';
 
 interface ExhibitionCardProps {
     exhibition: Exhibition;
@@ -45,7 +45,7 @@ const ExhibitionCard: React.FC<ExhibitionCardProps> = ({ exhibition, onClick }) 
 
                 {/* Status Badge */}
                 <div className={`absolute top-3 left-3 px-2 py-0.5 rounded-full text-[10px] font-bold backdrop-blur-md shadow-sm ${getStatusColor(exhibition.status)}`}>
-                    {exhibition.status}
+                    {ExhibitionStatusLabel[exhibition.status] || exhibition.status}
                 </div>
 
                 {/* Date Badge */}

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Exhibition, ExhibitionStatus } from '../types';
+import { Exhibition, ExhibitionStatus, ExhibitionStatusLabel } from '../types';
 import { exhibitionAPI } from '../services/exhibitionService';
 
 interface ExhibitionDetailProps {
@@ -76,8 +76,8 @@ const ExhibitionDetail: React.FC<ExhibitionDetailProps> = ({ id, onBack, onNavig
                             onClick={handleToggleFavorite}
                             disabled={isFavoriting}
                             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border transition-all active:scale-95 ${exhibition.is_favorited
-                                    ? 'bg-red-50 border-red-100 text-red-500'
-                                    : 'bg-white border-slate-200 text-slate-500 hover:border-slate-300'
+                                ? 'bg-red-50 border-red-100 text-red-500'
+                                : 'bg-white border-slate-200 text-slate-500 hover:border-slate-300'
                                 }`}
                         >
                             <span className={`material-symbols-outlined text-[18px] ${exhibition.is_favorited ? 'fill-current' : ''}`}>favorite</span>
@@ -98,7 +98,7 @@ const ExhibitionDetail: React.FC<ExhibitionDetailProps> = ({ id, onBack, onNavig
                     />
                     <div className="absolute top-4 right-4 bg-black/60 backdrop-blur p-2 rounded-lg text-white text-center min-w-[60px]">
                         <div className="text-[10px] opacity-80 uppercase tracking-widest leading-none mb-1">Status</div>
-                        <div className="text-sm font-bold">{exhibition.status}</div>
+                        <div className="text-sm font-bold">{ExhibitionStatusLabel[exhibition.status as ExhibitionStatus] || exhibition.status}</div>
                     </div>
                 </div>
 

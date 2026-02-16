@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { adminService } from '../services/adminService';
 import { exhibitionAPI } from '../services/exhibitionService';
-import { Exhibition, ExhibitionStatus } from '../types';
+import { Exhibition, ExhibitionStatus, ExhibitionStatusLabel } from '../types';
 
 interface User {
     id: number;
@@ -445,7 +445,7 @@ const AdminDashboard: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                                                     item.status === ExhibitionStatus.UPCOMING ? 'bg-amber-50 text-amber-600 border-amber-100' :
                                                         'bg-slate-50 text-slate-500 border-slate-100'
                                                     }`}>
-                                                    {item.status}
+                                                    {ExhibitionStatusLabel[item.status] || item.status}
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4 text-right">
