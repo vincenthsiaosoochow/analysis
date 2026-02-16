@@ -46,8 +46,8 @@ def get_exhibitions(
     
     for ex in exhibitions:
         ex_dict = ExhibitionOut.model_validate(ex).model_dump()
-        # 压缩封面图为缩略图（400px宽，65%质量）- 大小减少约90%
-        ex_dict['cover_image'] = create_thumbnail_from_data_uri(ex_dict['cover_image'], max_width=400, quality=65)
+        # 压缩封面图为缩略图（600px宽，82%质量）- 平衡清晰度和加载速度
+        ex_dict['cover_image'] = create_thumbnail_from_data_uri(ex_dict['cover_image'], max_width=600, quality=82)
         ex_dict['is_favorited'] = ex.id in favorited_ids
         result.append(ExhibitionOut(**ex_dict))
     
