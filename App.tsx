@@ -180,8 +180,9 @@ const App: React.FC = () => {
           localStorage.setItem('user_profile', JSON.stringify(newProfile));
           setIsLoggedIn(true);
 
-          // 2. 获取用户分析记录
+          // 2. 获取用户分析记录和收藏的展览
           await refreshUserAnalyses();
+          await refreshMyExhibitions();
         } catch (error) {
           console.error("Session restore failed", error);
           // Only clear session if token is invalid (401/403), but for simplicity clear on any error during init
