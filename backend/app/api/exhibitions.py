@@ -6,7 +6,7 @@ from app.database import get_db
 from app.models.user import User
 from app.schemas.exhibition import ExhibitionCreate, ExhibitionOut, ExhibitionUpdate
 from app.services.exhibition_service import ExhibitionService
-from app.utils.dependencies import get_current_user, get_current_admin_user
+from app.utils.dependencies import get_current_user, get_current_admin
 
 router = APIRouter(
     prefix="/exhibitions",
@@ -80,7 +80,7 @@ def get_exhibition(
 def create_exhibition(
     exhibition: ExhibitionCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_admin_user)
+    current_user: User = Depends(get_current_admin)
 ):
     return ExhibitionService.create_exhibition(db, exhibition)
 
@@ -88,7 +88,7 @@ def create_exhibition(
 def delete_exhibition(
     exhibition_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_admin_user)
+    current_user: User = Depends(get_current_admin)
 ):
     success = ExhibitionService.delete_exhibition(db, exhibition_id)
     if not success:
@@ -113,7 +113,7 @@ def toggle_favorite(
 def batch_delete_exhibitions(
     ids: List[int],
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_admin_user)
+    current_user: User = Depends(get_current_admin)
 ):
     count = 0
     for id in ids:
