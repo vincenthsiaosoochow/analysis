@@ -195,6 +195,13 @@ const App: React.FC = () => {
     initApp();
   }, []); // Run once on mount
 
+  // Refresh exhibition favorites when switching to profile tab
+  useEffect(() => {
+    if (currentTab === AppTab.PROFILE && isLoggedIn) {
+      refreshMyExhibitions();
+    }
+  }, [currentTab, isLoggedIn]);
+
   // Filtered analyses for the discover tab
   const filteredDiscoverAnalyses = useMemo(() => {
     // Determine source: if search query exists or we have API data, use it.
