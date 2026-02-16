@@ -220,7 +220,8 @@ const App: React.FC = () => {
       const newProfile = {
         name: result.user.name,
         phone: result.user.phone,
-        avatar: result.user.avatar || profile.avatar
+        avatar: result.user.avatar || profile.avatar,
+        is_admin: result.user.is_admin
       };
       setProfile(newProfile);
       localStorage.setItem('user_profile', JSON.stringify(newProfile));
