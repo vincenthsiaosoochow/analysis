@@ -108,7 +108,7 @@ const App: React.FC = () => {
   const [myAnalyses, setMyAnalyses] = useState<ArtworkAnalysis[]>([]);
   const [discoverAnalyses, setDiscoverAnalyses] = useState<ArtworkAnalysis[]>([]);
   const [featuredAnalyses, setFeaturedAnalyses] = useState<ArtworkAnalysis[]>([]);
-  
+
   // Pagination state for discover page
   const [discoverPage, setDiscoverPage] = useState(1);
   const ITEMS_PER_PAGE = 20;
@@ -157,8 +157,8 @@ const App: React.FC = () => {
 
   const refreshFeatured = async () => {
     try {
-      // 获取精选分析（世界级名画/S级作品随机展示）
-      const analyses = await analysisAPI.discover(undefined, 100, 'featured');
+      // 获取精选分析 - 改为随机展示10个
+      const analyses = await analysisAPI.discover(undefined, 10, 'random');
       setFeaturedAnalyses(analyses);
     } catch (err) {
       console.error("Failed to fetch featured analyses", err);
@@ -225,7 +225,7 @@ const App: React.FC = () => {
         item.artist.toLowerCase().includes(query) ||
         item.style.toLowerCase().includes(query)
     );
-    }, [searchQuery, discoverAnalyses]);
+  }, [searchQuery, discoverAnalyses]);
 
   // Paginated discover analyses (20 per page)
   const paginatedDiscoverAnalyses = useMemo(() => {

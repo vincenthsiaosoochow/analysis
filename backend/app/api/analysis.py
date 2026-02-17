@@ -4,7 +4,7 @@
 from typing import Optional
 from fastapi import APIRouter, Depends, File, UploadFile, HTTPException, Query, Response
 from sqlalchemy.orm import Session, defer
-from sqlalchemy import or_
+from sqlalchemy import or_, func
 import random
 import base64
 import asyncio
@@ -142,7 +142,7 @@ def get_my_analyses(
 def discover_analyses(
     search: Optional[str] = Query(None, description="搜索关键词"),
     limit: int = Query(20, ge=1, le=100, description="返回数量"),
-    sort: str = Query("latest", regex="^(latest|popular|featured)$", description="排序方式"),
+    sort: str = Query("latest", regex="^(latest|popular|featured|random)$", description="排序方式"),
     db: Session = Depends(get_db),
     current_user: Optional[User] = Depends(get_current_user_optional)
 ):
@@ -214,6 +214,15 @@ def discover_analyses(
         # 最终再次打乱混合展示（可选，或者保持S在前的顺序，这里选择打乱让用户感觉丰富）
         random.shuffle(featured_list)
         valid_analyses = featured_list
+
+    elif sort == "random":
+        # Random selection using MySQL rand() or standard random()
+        # Fetch more than limit to ensure we have enough valid items after filtering
+        query = query.order_by(func.rand())
+        analyses = query.limit(limit * 3).all()
+        valid_analyses = _filter_valid_analyses(analyses)
+        # Take only the requested limit
+        valid_analyses = valid_analyses[:limit]
 
     elif sort == "popular":
         query = query.order_by(ArtworkAnalysis.likes.desc())

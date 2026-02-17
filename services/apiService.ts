@@ -164,7 +164,7 @@ export const analysisAPI = {
     /**
      * 获取公开分析列表
      */
-    discover: async (search?: string, limit: number = 20, sort: 'latest' | 'popular' | 'featured' = 'latest') => {
+    discover: async (search?: string, limit: number = 20, sort: 'latest' | 'popular' | 'featured' | 'random' = 'latest') => {
         const params = new URLSearchParams();
         if (search) params.append('search', search);
         params.append('limit', limit.toString());
