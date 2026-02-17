@@ -3,7 +3,7 @@
 """
 from typing import Optional
 from fastapi import APIRouter, Depends, File, UploadFile, HTTPException, Query, Response
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, defer
 from sqlalchemy import or_
 import random
 import base64
@@ -151,7 +151,9 @@ def discover_analyses(
     支持搜索、分页和排序
     featured: 随机展示S级/A级精选作品
     """
-    query = db.query(ArtworkAnalysis).filter(ArtworkAnalysis.is_deleted == 0)
+    # 使用 defer 推迟加载 image_url (它包含 huge base64 string)，防止 OOM
+    # 列表接口只返回 ID/Meta，图片通过 /image 接口获取
+    query = db.query(ArtworkAnalysis).options(defer(ArtworkAnalysis.image_url)).filter(ArtworkAnalysis.is_deleted == 0)
     
     # 搜索过滤
     if search:
