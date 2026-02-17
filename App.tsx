@@ -108,6 +108,10 @@ const App: React.FC = () => {
   const [myAnalyses, setMyAnalyses] = useState<ArtworkAnalysis[]>([]);
   const [discoverAnalyses, setDiscoverAnalyses] = useState<ArtworkAnalysis[]>([]);
   const [featuredAnalyses, setFeaturedAnalyses] = useState<ArtworkAnalysis[]>([]);
+  
+  // Pagination state for discover page
+  const [discoverPage, setDiscoverPage] = useState(1);
+  const ITEMS_PER_PAGE = 20;
   // Removed isInitializing state
 
   // Data Refresh Helpers
@@ -455,7 +459,7 @@ const App: React.FC = () => {
         </div>
 
         <div className="masonry-container">
-          {featuredAnalyses.map((art) => (
+          {featuredAnalyses.slice(0, 10).map((art) => (
             <div key={art.id} className="masonry-item group cursor-pointer" onClick={() => setAnalysis(art)}>
               <div className="relative rounded-2xl overflow-hidden border border-slate-100 shadow-sm transition-transform active:scale-95 mb-2 bg-slate-50">
                 <img
