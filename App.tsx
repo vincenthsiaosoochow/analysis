@@ -148,7 +148,7 @@ const App: React.FC = () => {
 
   const refreshDiscover = async () => {
     try {
-      const analyses = await analysisAPI.discover(undefined, 20, 'latest');
+      const analyses = await analysisAPI.discover(undefined, 100, 'latest');
       setDiscoverAnalyses(analyses);
     } catch (err) {
       console.error("Failed to fetch discover analyses", err);
@@ -158,7 +158,7 @@ const App: React.FC = () => {
   const refreshFeatured = async () => {
     try {
       // 获取精选分析（世界级名画/S级作品随机展示）
-      const analyses = await analysisAPI.discover(undefined, 20, 'featured');
+      const analyses = await analysisAPI.discover(undefined, 100, 'featured');
       setFeaturedAnalyses(analyses);
     } catch (err) {
       console.error("Failed to fetch featured analyses", err);
