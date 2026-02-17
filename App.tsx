@@ -211,11 +211,10 @@ const App: React.FC = () => {
     }
   }, [currentTab, isLoggedIn]);
 
-  // Filtered analyses for the discover tab
+  // Filtered analyses for the discover tab - only use database data
   const filteredDiscoverAnalyses = useMemo(() => {
-    // Determine source: if search query exists or we have API data, use it.
-    // Otherwise fallback to GLOBAL constants only if API is empty (though API should return data)
-    let source = discoverAnalyses.length > 0 ? discoverAnalyses : GLOBAL_ANALYSES;
+    // Only use API data from database, no fallback
+    const source = discoverAnalyses;
 
     if (!searchQuery.trim()) return source;
 
