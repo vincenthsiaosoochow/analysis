@@ -115,16 +115,20 @@ def get_exhibition_cover_image(
     获取展览封面图 (Lazy Loading)
     支持 Base64 和 URL
     """
-    # Only fetch the cover_image field
-    exhibition = db.query(Exhibition.cover_image).filter(Exhibition.id == exhibition_id).first()
+    from app.models.exhibition import Exhibition
     
-    if not exhibition or not exhibition.cover_image:
+    # Fetch only the cover_image field for performance
+    # Note: db.query(Model.column) returns tuples, not model instances
+    result = db.query(Exhibition.cover_image).filter(Exhibition.id == exhibition_id).first()
+    
+    if not result or not result[0]:
         # Return transparent 1x1 pixel if missing
         # base64 for 1x1 transparent gif
         TRANSPARENT_PIXEL = b'GIF89a\x01\x00\x01\x00\x80\x00\x00\xff\xff\xff\x00\x00\x00!\xf9\x04\x01\x00\x00\x00\x00,\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02D\x01\x00;'
         return Response(content=TRANSPARENT_PIXEL, media_type="image/gif")
     
-    content = exhibition.cover_image.strip()
+    # Access the first element of the tuple
+    content = result[0].strip()
     
     # Check if it is a URL (http, https, or relative)
     # But safeguard against self-referencing loops if DB already contains looking-like-self URL due to previous bug
