@@ -179,6 +179,17 @@ const ExhibitionDetail: React.FC<ExhibitionDetailProps> = ({ id, onBack, onNavig
                             )}
                         </div>
                     </div>
+
+                    {/* Copyright Notice */}
+                    <div className="mt-12 pt-8 border-t border-slate-100">
+                        <div className="flex gap-3 items-start">
+                            <span className="material-symbols-outlined text-slate-400 text-[20px] shrink-0">info</span>
+                            <p className="text-xs leading-relaxed text-slate-500">
+                                <span className="font-bold text-slate-700">版权声明：</span>
+                                展览图文资讯均来源于各美术馆、艺术机构官方发布及公开合法渠道，仅用于非商业性艺术分享与交流。相关素材版权归原作者、美术馆及艺术机构所有。若有版权方异议，请联系我们。
+                            </p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
