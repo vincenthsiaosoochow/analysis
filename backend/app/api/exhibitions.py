@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status, Response
+import base64
 from sqlalchemy.orm import Session
 from typing import List, Optional
 
@@ -31,11 +32,9 @@ def get_exhibitions(
     db: Session = Depends(get_db),
     current_user: Optional[User] = Depends(get_current_user_optional)  # Optional auth to check favorites status
 ):
-    from app.utils.image_utils import create_thumbnail_from_data_uri
-    
     exhibitions = ExhibitionService.get_exhibitions(db, skip, limit, status, city, keyword)
     
-    # 压缩图片并标记收藏状态
+    # 标记收藏状态
     result = []
     favorited_ids = set()
     
@@ -46,8 +45,11 @@ def get_exhibitions(
     
     for ex in exhibitions:
         ex_dict = ExhibitionOut.model_validate(ex).model_dump()
-        # 压缩封面图为缩略图（600px宽，82%质量）- 平衡清晰度和加载速度
-        ex_dict['cover_image'] = create_thumbnail_from_data_uri(ex_dict['cover_image'], max_width=600, quality=82)
+        
+        # 性能优化：不再返回 Base64，而是返回图片 URL
+        # 前端通过 <img src="..."> 懒加载图片，利用浏览器并发请求
+        ex_dict['cover_image'] = f"/api/exhibitions/{ex.id}/cover-image"
+        
         ex_dict['is_favorited'] = ex.id in favorited_ids
         result.append(ExhibitionOut(**ex_dict))
     
@@ -84,6 +86,46 @@ def get_exhibition(
         ex_data.is_favorited = exhibition.id in fav_ids
         
     return ex_data
+
+@router.get("/{exhibition_id}/cover-image")
+def get_exhibition_cover_image(
+    exhibition_id: int,
+    db: Session = Depends(get_db)
+):
+    """
+    获取展览封面图 (Lazy Loading)
+    """
+    # Only fetch the cover_image field
+    exhibition = db.query(Exhibition.cover_image).filter(Exhibition.id == exhibition_id).first()
+    
+    if not exhibition or not exhibition.cover_image:
+        # Return 1x1 pixel or 404. For now 404.
+        raise HTTPException(status_code=404, detail="Image not found")
+    
+    try:
+        # Data URI format: "data:image/jpeg;base64,....."
+        if "," in exhibition.cover_image:
+            header, base64_str = exhibition.cover_image.split(",", 1)
+        else:
+            header = ""
+            base64_str = exhibition.cover_image
+            
+        image_data = base64.b64decode(base64_str)
+        
+        # Determine media type
+        media_type = "image/jpeg"
+        if "png" in header:
+            media_type = "image/png"
+        elif "webp" in header:
+            media_type = "image/webp"
+            
+        return Response(content=image_data, media_type=media_type, headers={
+            "Cache-Control": "public, max-age=31536000",
+            "Access-Control-Allow-Origin": "*"
+        })
+    except Exception as e:
+        print(f"Error serving exhibition image {exhibition_id}: {e}")
+        raise HTTPException(status_code=500, detail="Image processing error")
 
 @router.post("/", response_model=ExhibitionOut, status_code=status.HTTP_201_CREATED)
 def create_exhibition(

@@ -16,7 +16,9 @@ class ExhibitionService:
         city: Optional[str] = None,
         keyword: Optional[str] = None
     ) -> List[Exhibition]:
-        query = db.query(Exhibition)
+        from sqlalchemy.orm import defer
+        # Defer cover_image for list views to improve performance
+        query = db.query(Exhibition).options(defer(Exhibition.cover_image))
 
         if city:
             query = query.filter(Exhibition.city == city)
