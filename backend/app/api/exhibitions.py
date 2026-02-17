@@ -142,7 +142,40 @@ def get_exhibition_cover_image(
         
         image_data = base64.b64decode(base64_str)
         
-        # Determine media type
+        # Optimize image size for mobile (max width 800px)
+        try:
+            from PIL import Image
+            import io
+            
+            # Open image from bytes
+            with Image.open(io.BytesIO(image_data)) as img:
+                # Only resize if width > 800px
+                if img.width > 800:
+                    # Calculate new height
+                    ratio = 800 / img.width
+                    new_height = int(img.height * ratio)
+                    
+                    # Resize with high quality
+                    # Use LANCZOS for downsampling
+                    img = img.resize((800, new_height), Image.Resampling.LANCZOS)
+                    
+                    # Save to bytes
+                    output = io.BytesIO()
+                    # Convert RGBA to RGB if saving as JPEG
+                    save_format = img.format if img.format else "JPEG"
+                    if save_format == "JPEG" and img.mode == "RGBA":
+                        img = img.convert("RGB")
+                        
+                    img.save(output, format=save_format, quality=85, optimize=True)
+                    image_data = output.getvalue()
+        except Exception as e:
+            print(f"Image optimization failed via PIL (continuing with original): {e}")
+
+        # Determine media type logic (unchanged or re-detected)
+        # We can rely on original header logic or detect from PIL if needed, 
+        # but original header logic is fine as we usually keep format.
+        
+        # Determine media type based on header primarily, or fallback
         media_type = "image/jpeg" # Default
         if "png" in header:
             media_type = "image/png"

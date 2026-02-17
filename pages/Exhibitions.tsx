@@ -75,7 +75,7 @@ const Exhibitions: React.FC<ExhibitionsProps> = ({ onNavigateDetail, onBack }) =
         <div className="animate-fade-in min-h-screen bg-slate-50 pb-20">
             {/* Header */}
             <header className="sticky top-0 z-40 bg-slate-50/90 backdrop-blur-md pt-6 pb-4 px-4 shadow-sm transition-shadow">
-                <div className="flex items-center justify-between mb-4 max-w-5xl mx-auto">
+                <div className="flex items-center justify-between mb-4 max-w-md mx-auto">
                     <div className="flex items-center gap-3">
                         <button onClick={onBack} className="material-symbols-outlined text-slate-400 hover:text-slate-600">arrow_back</button>
                         <h1 className="text-2xl font-bold text-slate-900">全球艺术展览</h1>
@@ -83,7 +83,7 @@ const Exhibitions: React.FC<ExhibitionsProps> = ({ onNavigateDetail, onBack }) =
                 </div>
 
                 {/* Search Bar */}
-                <div className="max-w-5xl mx-auto mb-4">
+                <div className="max-w-md mx-auto mb-4">
                     <div className="relative">
                         <span className="absolute left-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-slate-400">search</span>
                         <input
@@ -106,7 +106,7 @@ const Exhibitions: React.FC<ExhibitionsProps> = ({ onNavigateDetail, onBack }) =
                 </div>
 
                 {/* Filters */}
-                <div className="max-w-5xl mx-auto">
+                <div className="max-w-md mx-auto">
                     <ExhibitionFilter
                         activeFilters={filters}
                         onFilterChange={(newFilters) => setFilters({ ...filters, ...newFilters })}
@@ -115,7 +115,7 @@ const Exhibitions: React.FC<ExhibitionsProps> = ({ onNavigateDetail, onBack }) =
             </header>
 
             {/* List Content */}
-            <main className="px-4 max-w-5xl mx-auto mt-2">
+            <main className="px-4 max-w-md mx-auto mt-2">
                 {isLoading ? (
                     <SkeletonExhibitionList />
                 ) : exhibitions.length > 0 ? (
