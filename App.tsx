@@ -226,7 +226,17 @@ const App: React.FC = () => {
         item.artist.toLowerCase().includes(query) ||
         item.style.toLowerCase().includes(query)
     );
-  }, [searchQuery, discoverAnalyses]);
+    }, [searchQuery, discoverAnalyses]);
+
+  // Paginated discover analyses (20 per page)
+  const paginatedDiscoverAnalyses = useMemo(() => {
+    const start = (discoverPage - 1) * ITEMS_PER_PAGE;
+    return filteredDiscoverAnalyses.slice(start, start + ITEMS_PER_PAGE);
+  }, [filteredDiscoverAnalyses, discoverPage]);
+
+  const discoverTotalPages = Math.ceil(filteredDiscoverAnalyses.length / ITEMS_PER_PAGE);
+
+  // Your other useMemo or logic here...
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -532,8 +542,8 @@ const App: React.FC = () => {
               </header>
 
               <div className="masonry-container px-2 mt-6">
-                {filteredDiscoverAnalyses.length > 0 ? (
-                  filteredDiscoverAnalyses.map(item => (
+                {paginatedDiscoverAnalyses.length > 0 ? (
+                  paginatedDiscoverAnalyses.map(item => (
                     <div key={item.id} className="masonry-item bg-white rounded-2xl overflow-hidden border border-slate-100 shadow-sm transition-transform active:scale-[0.98]" onClick={() => setAnalysis(item)}>
                       <img src={item.imageUrl} className="w-full h-auto object-cover" crossOrigin="anonymous" loading="lazy" />
                       <div className="p-3">
@@ -550,6 +560,35 @@ const App: React.FC = () => {
                   </div>
                 )}
               </div>
+
+              {/* Pagination Controls */}
+              {filteredDiscoverAnalyses.length > ITEMS_PER_PAGE && (
+                <div className="flex items-center justify-center gap-3 py-8 px-2">
+                  <button
+                    onClick={() => {
+                      setDiscoverPage(p => Math.max(1, p - 1));
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }}
+                    disabled={discoverPage === 1}
+                    className="px-5 py-2.5 rounded-xl border border-slate-200 bg-white text-sm font-medium text-slate-700 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-slate-50 transition"
+                  >
+                    上一页
+                  </button>
+                  <span className="text-sm text-slate-600 font-medium px-4">
+                    第 {discoverPage} / {discoverTotalPages} 页
+                  </span>
+                  <button
+                    onClick={() => {
+                      setDiscoverPage(p => Math.min(discoverTotalPages, p + 1));
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }}
+                    disabled={discoverPage === discoverTotalPages}
+                    className="px-5 py-2.5 rounded-xl border border-slate-200 bg-white text-sm font-medium text-slate-700 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-slate-50 transition"
+                  >
+                    下一页
+                  </button>
+                </div>
+              )}
 
               {/* Discover Page Footer */}
               <footer className="w-full py-16 flex flex-col items-center justify-center bg-transparent">

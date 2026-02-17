@@ -16,10 +16,18 @@ const Exhibitions: React.FC<ExhibitionsProps> = ({ onNavigateDetail, onBack }) =
     const [filters, setFilters] = useState<ExhibitionFilterState>({});
     const [searchQuery, setSearchQuery] = useState('');
     const [showBackToTop, setShowBackToTop] = useState(false);
+    const [page, setPage] = useState(1);
+    const ITEMS_PER_PAGE = 20;
 
+    // Reset page when filters change
+    useEffect(() => {
+        setPage(1);
+    }, [filters]);
+
+    // Fetch when page or filters change  
     useEffect(() => {
         fetchExhibitions();
-    }, [filters]);
+    }, [filters, page]);
 
     // Handle scroll for back-to-top button
     useEffect(() => {
@@ -38,7 +46,12 @@ const Exhibitions: React.FC<ExhibitionsProps> = ({ onNavigateDetail, onBack }) =
     const fetchExhibitions = async () => {
         setIsLoading(true);
         try {
-            const data = await exhibitionAPI.getExhibitions(filters);
+            const skip = (page - 1) * ITEMS_PER_PAGE;
+            const data = await exhibitionAPI.getExhibitions({
+                ...filters,
+                skip,
+                limit: ITEMS_PER_PAGE
+            });
             setExhibitions(data);
         } catch (error) {
             console.error("Failed to fetch exhibitions", error);
@@ -114,6 +127,29 @@ const Exhibitions: React.FC<ExhibitionsProps> = ({ onNavigateDetail, onBack }) =
                     <div className="py-20 text-center flex flex-col items-center">
                         <span className="material-symbols-outlined text-slate-200 text-5xl mb-4">event_busy</span>
                         <p className="text-slate-400 text-sm">暂无符合条件的展览</p>
+                    </div>
+                )}
+
+                {/* Pagination Controls */}
+                {!isLoading && exhibitions.length > 0 && (
+                    <div className="flex items-center justify-center gap-3 py-8">
+                        <button
+                            onClick={() => setPage(p => Math.max(1, p - 1))}
+                            disabled={page === 1}
+                            className="px-5 py-2.5 rounded-xl border border-slate-200 bg-white text-sm font-medium text-slate-700 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-slate-50 transition"
+                        >
+                            上一页
+                        </button>
+                        <span className="text-sm text-slate-600 font-medium px-4">
+                            第 {page} 页
+                        </span>
+                        <button
+                            onClick={() => setPage(p => p + 1)}
+                            disabled={exhibitions.length < ITEMS_PER_PAGE}
+                            className="px-5 py-2.5 rounded-xl border border-slate-200 bg-white text-sm font-medium text-slate-700 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-slate-50 transition"
+                        >
+                            下一页
+                        </button>
                     </div>
                 )}
             </main>
