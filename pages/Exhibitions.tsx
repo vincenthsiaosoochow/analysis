@@ -17,7 +17,7 @@ const Exhibitions: React.FC<ExhibitionsProps> = ({ onNavigateDetail, onBack }) =
     const [searchQuery, setSearchQuery] = useState('');
     const [showBackToTop, setShowBackToTop] = useState(false);
     const [page, setPage] = useState(1);
-    const ITEMS_PER_PAGE = 20;
+    const ITEMS_PER_PAGE = 10;
 
     // Reset page when filters change
     useEffect(() => {
