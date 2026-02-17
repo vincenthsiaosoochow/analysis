@@ -65,7 +65,9 @@ def get_exhibitions(
         
         # 性能优化：不再返回 Base64，而是返回图片 URL
         # 前端通过 <img src="..."> 懒加载图片，利用浏览器并发请求
-        ex_dict['cover_image'] = f"/api/exhibitions/{ex.id}/cover-image"
+        # 添加版本号防止缓存问题
+        updated_ts = int(ex.updated_at.timestamp()) if ex.updated_at else 0
+        ex_dict['cover_image'] = f"/api/exhibitions/{ex.id}/cover-image?v={updated_ts}"
         
         ex_dict['is_favorited'] = ex.id in favorited_ids
         result.append(ExhibitionOut(**ex_dict))
@@ -185,7 +187,7 @@ def get_exhibition_cover_image(
             media_type = "image/gif"
             
         return Response(content=image_data, media_type=media_type, headers={
-            "Cache-Control": "public, max-age=31536000",
+            "Cache-Control": "no-cache",
             "Access-Control-Allow-Origin": "*"
         })
     except Exception as e:
