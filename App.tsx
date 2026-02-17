@@ -562,7 +562,7 @@ const App: React.FC = () => {
               </div>
 
               {/* Pagination Controls */}
-              {filteredDiscoverAnalyses.length > ITEMS_PER_PAGE && (
+              {discoverTotalPages > 1 && (
                 <div className="flex items-center justify-center gap-3 py-8 px-2">
                   <button
                     onClick={() => {
