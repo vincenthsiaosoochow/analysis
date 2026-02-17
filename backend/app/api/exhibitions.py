@@ -187,7 +187,7 @@ def get_exhibition_cover_image(
             media_type = "image/gif"
             
         return Response(content=image_data, media_type=media_type, headers={
-            "Cache-Control": "no-cache",
+            "Cache-Control": "public, max-age=31536000",
             "Access-Control-Allow-Origin": "*"
         })
     except Exception as e:
