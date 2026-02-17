@@ -126,8 +126,20 @@ def get_exhibition_cover_image(
     
     content = exhibition.cover_image.strip()
     
-    # Check if it is a URL
-    if content.startswith("http"):
+    # Check if it is a URL (http, https, or relative)
+    # But safeguard against self-referencing loops if DB already contains looking-like-self URL due to previous bug
+    is_url = content.startswith("http") or content.startswith("//")
+    # Only allow relative URL if it DOES NOT look like our own endpoint to avoid infinite loop
+    # Current endpoint pattern: /api/exhibitions/{id}/cover-image
+    if content.startswith("/"):
+        if "/cover-image" in content and f"/exhibitions/{exhibition_id}/" in content:
+            # This is a self-referencing loop from corrupted data. Return error or placeholder.
+            # Returning transparent pixel to allow page load without error console spam, 
+            # but it effectively means "image lost".
+             return Response(content=TRANSPARENT_PIXEL, media_type="image/gif")
+        is_url = True
+
+    if is_url:
         from fastapi.responses import RedirectResponse
         return RedirectResponse(content)
 

@@ -71,6 +71,18 @@ class ExhibitionService:
             return None
         
         update_data = exhibition_update.model_dump(exclude_unset=True)
+        
+        # CRITICAL FIX: Prevent overwriting actual image data with the lazy-loading URL.
+        # When frontend sends back the Exhibition object, it contains the generated URL 
+        # (e.g., /api/exhibitions/1/cover-image?v=...) instead of the underlying Base64/real URL.
+        # If we save this back to DB, we lose the image data and create a broken self-referencing loop.
+        if "cover_image" in update_data:
+            cover_val = update_data["cover_image"]
+            # Check if it looks like our lazy-load URL
+            if cover_val and isinstance(cover_val, str) and "/api/exhibitions/" in cover_val and "/cover-image" in cover_val:
+                # Remove it so we keep the existing value in DB
+                del update_data["cover_image"]
+
         for key, value in update_data.items():
             setattr(db_exhibition, key, value)
         
