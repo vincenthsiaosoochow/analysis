@@ -1,5 +1,5 @@
 # Build Stage for Frontend
-FROM node:18-alpine as frontend-build
+FROM node:22-alpine as frontend-build
 # Force rebuild by adding a build argument
 ARG CACHE_BUST=2026-01-27-v3
 WORKDIR /app
