@@ -47,6 +47,7 @@ const Exhibitions: React.FC<ExhibitionsProps> = ({ onNavigateDetail, onBack }) =
         setIsLoading(true);
         try {
             const skip = (page - 1) * ITEMS_PER_PAGE;
+            console.log(`Fetching exhibitions: page=${page}, skip=${skip}, limit=${ITEMS_PER_PAGE}`);
             const data = await exhibitionAPI.getExhibitions({
                 ...filters,
                 skip,
