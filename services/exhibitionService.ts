@@ -17,6 +17,10 @@ export const exhibitionAPI = {
         if (params?.city) queryParams.append('city', params.city);
         if (params?.keyword) queryParams.append('keyword', params.keyword);
 
+        // Add pagination parameters
+        if (params?.skip !== undefined) queryParams.append('skip', params.skip.toString());
+        if (params?.limit !== undefined) queryParams.append('limit', params.limit.toString());
+
         const response = await axios.get(`${API_BASE_URL}/api/exhibitions/`, {
             params: queryParams,
             headers: getAuthHeaders()

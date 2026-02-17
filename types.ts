@@ -97,6 +97,8 @@ export interface ExhibitionFilterState {
   status?: string;
   city?: string;
   keyword?: string;
+  skip?: number;
+  limit?: number;
 }
 
 export interface FeaturedItem {
