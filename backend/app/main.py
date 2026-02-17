@@ -43,13 +43,29 @@ except Exception as e:
     print(f"Schema update/check warning: {e}")
 
 # 自动设置指定用户为管理员
+def promote_to_admin(phone_number: str, db_engine):
+    from sqlalchemy.orm import sessionmaker
+    from app.models.user import User
+    
+    SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=db_engine)
+    db = SessionLocal()
+    try:
+        user = db.query(User).filter(User.phone == phone_number).first()
+        if user and user.is_admin != 1:
+            user.is_admin = 1
+            db.commit()
+            print(f"Successfully promoted user {user.name} ({user.phone}) to ADMIN.")
+    except Exception as e:
+        print(f"Error promoting user: {e}")
+    finally:
+        db.close()
+
+# 执行自动提升
 try:
-    from create_admin import promote_to_admin
-    # 用户指定的手机号
-    promote_to_admin('13218185056')
+    promote_to_admin('13218185056', engine)
     print("Auto-promotion check completed for 13218185056")
 except Exception as e:
-    print(f"Error executing auto-promotion: {e}")
+    print(f"Error executing auto-promotion sequence: {e}")
 
 # 创建 FastAPI 应用
 app = FastAPI(
