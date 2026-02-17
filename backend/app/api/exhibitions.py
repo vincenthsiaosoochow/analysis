@@ -44,7 +44,24 @@ def get_exhibitions(
         favorited_ids = {fav.id for fav in favorites}
     
     for ex in exhibitions:
-        ex_dict = ExhibitionOut.model_validate(ex).model_dump()
+        # 手动构建字典，避免 Pydantic model_validate 读取被 defer 的 cover_image 字段导致触发 SQL 查询 (N+1问题)
+        # 获取除 cover_image 外的所有字段
+        ex_dict = {
+            "id": ex.id,
+            "title": ex.title,
+            "venue": ex.venue,
+            "start_date": ex.start_date,
+            "end_date": ex.end_date,
+            "address": ex.address,
+            "city": ex.city,
+            "country": ex.country,
+            "continent": ex.continent,
+            "ticket_info": ex.ticket_info,
+            "description": ex.description,
+            "official_link": ex.official_link,
+            "created_at": ex.created_at,
+            "updated_at": ex.updated_at
+        }
         
         # 性能优化：不再返回 Base64，而是返回图片 URL
         # 前端通过 <img src="..."> 懒加载图片，利用浏览器并发请求
@@ -94,30 +111,45 @@ def get_exhibition_cover_image(
 ):
     """
     获取展览封面图 (Lazy Loading)
+    支持 Base64 和 URL
     """
     # Only fetch the cover_image field
     exhibition = db.query(Exhibition.cover_image).filter(Exhibition.id == exhibition_id).first()
     
     if not exhibition or not exhibition.cover_image:
-        # Return 1x1 pixel or 404. For now 404.
-        raise HTTPException(status_code=404, detail="Image not found")
+        # Return transparent 1x1 pixel if missing
+        # base64 for 1x1 transparent gif
+        TRANSPARENT_PIXEL = b'GIF89a\x01\x00\x01\x00\x80\x00\x00\xff\xff\xff\x00\x00\x00!\xf9\x04\x01\x00\x00\x00\x00,\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02D\x01\x00;'
+        return Response(content=TRANSPARENT_PIXEL, media_type="image/gif")
     
+    content = exhibition.cover_image.strip()
+    
+    # Check if it is a URL
+    if content.startswith("http"):
+        from fastapi.responses import RedirectResponse
+        return RedirectResponse(content)
+
     try:
         # Data URI format: "data:image/jpeg;base64,....."
-        if "," in exhibition.cover_image:
-            header, base64_str = exhibition.cover_image.split(",", 1)
+        if "," in content:
+            header, base64_str = content.split(",", 1)
         else:
             header = ""
-            base64_str = exhibition.cover_image
+            base64_str = content
             
+        # Clean up whitespace/newlines which might break b64decode
+        base64_str = base64_str.strip()
+        
         image_data = base64.b64decode(base64_str)
         
         # Determine media type
-        media_type = "image/jpeg"
+        media_type = "image/jpeg" # Default
         if "png" in header:
             media_type = "image/png"
         elif "webp" in header:
             media_type = "image/webp"
+        elif "gif" in header:
+            media_type = "image/gif"
             
         return Response(content=image_data, media_type=media_type, headers={
             "Cache-Control": "public, max-age=31536000",
@@ -125,6 +157,7 @@ def get_exhibition_cover_image(
         })
     except Exception as e:
         print(f"Error serving exhibition image {exhibition_id}: {e}")
+        # Return error image or 404
         raise HTTPException(status_code=500, detail="Image processing error")
 
 @router.post("/", response_model=ExhibitionOut, status_code=status.HTTP_201_CREATED)
