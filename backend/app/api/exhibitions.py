@@ -8,6 +8,9 @@ from app.models.user import User
 from app.schemas.exhibition import ExhibitionCreate, ExhibitionOut, ExhibitionUpdate
 from app.services.exhibition_service import ExhibitionService
 from app.utils.dependencies import get_current_user, get_current_user_optional, get_current_admin
+from app.utils.logger import get_logger
+
+logger = get_logger(__name__)
 
 router = APIRouter(
     prefix="/exhibitions",
@@ -207,8 +210,7 @@ def get_exhibition_cover_image(
             "Access-Control-Allow-Origin": "*"
         })
     except Exception as e:
-        print(f"Error serving exhibition image {exhibition_id}: {e}")
-        # Return error image or 404
+        logger.error(f"Error serving exhibition image {exhibition_id}: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="Image processing error")
 
 @router.post("/", response_model=ExhibitionOut, status_code=status.HTTP_201_CREATED)

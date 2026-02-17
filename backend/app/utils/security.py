@@ -9,6 +9,9 @@ from passlib.context import CryptContext
 
 from app.config import settings
 import hashlib
+from app.utils.logger import get_logger
+
+logger = get_logger(__name__)
 
 # 密码加密上下文
 # 配置 bcrypt__truncate_error=False 以自动截断超长密码而不是抛出错误
@@ -37,8 +40,8 @@ def hash_password(password: str) -> str:
     truncated_pwd = password[:20]  # 20个字符绝对不会超过72字节
     
     # 记录日志用于调试
-    print(f"[DEBUG] 原始密码长度: {len(password)}, 截断后长度: {len(truncated_pwd)}")
-    print(f"[DEBUG] 截断后密码字节数: {len(truncated_pwd.encode('utf-8'))}")
+    logger.debug(f"原始密码长度: {len(password)}, 截断后长度: {len(truncated_pwd)}")
+    logger.debug(f"截断后密码字节数: {len(truncated_pwd.encode('utf-8'))}")
     
     try:
         # 使用最简单的bcrypt调用
@@ -47,7 +50,7 @@ def hash_password(password: str) -> str:
         hashed = bcrypt.hashpw(truncated_pwd.encode('utf-8'), salt)
         return hashed.decode('utf-8')
     except Exception as e:
-        print(f"[ERROR] bcrypt加密失败: {str(e)}")
+        logger.error(f"bcrypt加密失败: {e}", exc_info=True)
         raise
 
 
@@ -60,7 +63,7 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
         import bcrypt
         return bcrypt.checkpw(truncated_pwd.encode('utf-8'), hashed_password.encode('utf-8'))
     except Exception as e:
-        print(f"[ERROR] 密码验证失败: {str(e)}")
+        logger.error(f"密码验证失败: {e}")
         return False
 
 
@@ -95,5 +98,5 @@ def decode_access_token(token: str) -> Optional[dict]:
         )
         return payload
     except JWTError as e:
-        print(f"[DEBUG] JWT Decode Error in security.py: {str(e)}")
+        logger.debug(f"JWT Decode Error: {e}")
         return None
