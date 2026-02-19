@@ -829,7 +829,7 @@ const App: React.FC = () => {
             </div>
             <div className="text-center space-y-2">
               <p className="text-slate-900 font-bold text-xl tracking-tight">正在进行专家级多维解析...</p>
-              <p className="text-slate-400 text-sm max-w-[240px] mx-auto">20年经验艺术专家正在审阅，为您提供投资决策参考</p>
+
             </div>
           </div>
         )
