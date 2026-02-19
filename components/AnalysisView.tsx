@@ -90,7 +90,7 @@ const AnalysisView: React.FC<AnalysisViewProps> = ({ analysis, onBack, isSaved =
         <button onClick={onBack} className="flex size-10 shrink-0 items-center justify-start text-slate-900">
           <span className="material-symbols-outlined text-2xl">arrow_back_ios_new</span>
         </button>
-        <h2 className="text-slate-900 text-base font-semibold tracking-tight flex-1 text-center">FUHUNG 专业报告</h2>
+        <h2 className="text-slate-900 text-base font-semibold tracking-tight flex-1 text-center">深度研究报告</h2>
         <div className="flex w-10 items-center justify-end">
           <button onClick={onToggleSave} className={`flex items-center justify-center transition-colors ${isSaved ? 'text-red-500' : 'text-slate-400'}`}>
             <span className={`material-symbols-outlined text-2xl ${isSaved ? 'fill-current' : ''}`}>
