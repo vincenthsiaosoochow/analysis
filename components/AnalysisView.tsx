@@ -8,6 +8,7 @@ interface AnalysisViewProps {
   isSaved?: boolean;
   onToggleSave?: () => void;
   onLogin?: () => void;
+  onShowAgreement?: () => void;
 }
 
 const ReportLogo: React.FC = () => (
@@ -22,7 +23,7 @@ const ReportLogo: React.FC = () => (
   </div>
 );
 
-const AnalysisView: React.FC<AnalysisViewProps> = ({ analysis, onBack, isSaved = false, onToggleSave, onLogin }) => {
+const AnalysisView: React.FC<AnalysisViewProps> = ({ analysis, onBack, isSaved = false, onToggleSave, onLogin, onShowAgreement }) => {
   const reportRef = useRef<HTMLDivElement>(null);
 
   const getRatingColor = (rating: string) => {
@@ -272,7 +273,7 @@ const AnalysisView: React.FC<AnalysisViewProps> = ({ analysis, onBack, isSaved =
             <div className="w-full h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent my-6"></div>
 
             <p className="text-slate-300 text-[9px] uppercase tracking-widest">© 2026 FUHUNG Art Analysis</p>
-            <p className="text-slate-400 text-[10px] mt-1.5 hover:text-slate-600 transition-colors cursor-default underline decoration-slate-200">用户协议与隐私条款</p>
+            <button onClick={onShowAgreement} className="text-slate-400 text-[10px] mt-1.5 hover:text-slate-600 transition-colors underline decoration-slate-200">用户协议与隐私条款</button>
           </div>
         </div>
       </main>

@@ -511,6 +511,7 @@ const App: React.FC = () => {
             isSaved={isSaved(analysis.id)}
             onToggleSave={() => toggleSaveAnalysis(analysis)}
             onLogin={() => setAuthView('login')}
+            onShowAgreement={() => setShowAgreement(true)}
           />
         </ErrorBoundary>
       ) : (
@@ -755,15 +756,15 @@ const App: React.FC = () => {
                 id={activeExhibitionId}
                 onBack={() => setActiveExhibitionId(null)}
                 onNavigateVenue={(venue) => {
-                  // TODO: Implement venue filter logic when going back to list
                   setActiveExhibitionId(null);
-                  // Can pass filter state here if Exhibitions component supports it via prop or context
                 }}
+                onShowAgreement={() => setShowAgreement(true)}
               />
             ) : (
               <Exhibitions
                 onNavigateDetail={(id) => setActiveExhibitionId(id)}
                 onBack={() => setCurrentTab(AppTab.HOME)}
+                onShowAgreement={() => setShowAgreement(true)}
               />
             )
           )}

@@ -8,9 +8,10 @@ import { SkeletonExhibitionList } from '../components/SkeletonLoading';
 interface ExhibitionsProps {
     onNavigateDetail: (id: number) => void;
     onBack: () => void;
+    onShowAgreement?: () => void;
 }
 
-const Exhibitions: React.FC<ExhibitionsProps> = ({ onNavigateDetail, onBack }) => {
+const Exhibitions: React.FC<ExhibitionsProps> = ({ onNavigateDetail, onBack, onShowAgreement }) => {
     const [exhibitions, setExhibitions] = useState<Exhibition[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [filters, setFilters] = useState<ExhibitionFilterState>({});
@@ -168,7 +169,7 @@ const Exhibitions: React.FC<ExhibitionsProps> = ({ onNavigateDetail, onBack }) =
             {/* Global Footer */}
             <footer className="w-full py-10 flex flex-col items-center justify-center bg-transparent">
                 <p className="text-slate-300 text-[9px] uppercase tracking-widest">© 2026 FUHUNG Art Analysis</p>
-                <p className="text-slate-400 text-[10px] mt-1.5 hover:text-slate-600 transition-colors cursor-default underline decoration-slate-200">用户协议与隐私条款</p>
+                <button onClick={onShowAgreement} className="text-slate-400 text-[10px] mt-1.5 hover:text-slate-600 transition-colors underline decoration-slate-200">用户协议与隐私条款</button>
             </footer>
         </div>
     );
