@@ -37,8 +37,8 @@ async def save_uploaded_image(file: UploadFile) -> Tuple[str, str]:
     # 读取文件内容
     content = await file.read()
     
-    # 检查文件大小（限制为 5MB，避免数据库过大）
-    max_size = min(settings.MAX_UPLOAD_SIZE, 5 * 1024 * 1024)  # 最大5MB
+    # 检查文件大小（限制为 10MB，兼顾用户体验与系统性能）
+    max_size = settings.MAX_UPLOAD_SIZE  # 默认 10MB
     if len(content) > max_size:
         raise HTTPException(
             status_code=400,
