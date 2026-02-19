@@ -493,8 +493,8 @@ const App: React.FC = () => {
       </section>
 
       <footer className="w-full py-8 flex flex-col items-center justify-center bg-transparent">
-        <button onClick={() => setShowAgreement(true)} className="text-slate-400 text-[10px] hover:text-slate-600 transition-colors underline decoration-slate-300">用户协议与隐私条款</button>
-        <p className="text-slate-300 text-[9px] mt-2 uppercase tracking-widest">© 2026 FUHUNG AI Art</p>
+        <p className="text-slate-300 text-[9px] uppercase tracking-widest">© 2026 FUHUNG Art Analysis</p>
+        <button onClick={() => setShowAgreement(true)} className="text-slate-400 text-[10px] mt-1.5 hover:text-slate-600 transition-colors underline decoration-slate-300">用户协议与隐私条款</button>
       </footer>
     </div>
   );
@@ -591,11 +591,8 @@ const App: React.FC = () => {
 
               {/* Discover Page Footer */}
               <footer className="w-full py-16 flex flex-col items-center justify-center bg-transparent">
-                <div className="mb-6 opacity-40 scale-75">
-                  <Logo size="sm" />
-                </div>
-                <button onClick={() => setShowAgreement(true)} className="text-slate-400 text-[10px] hover:text-slate-600 transition-colors underline decoration-slate-300">用户协议与隐私条款</button>
-                <p className="text-slate-300 text-[9px] mt-2 uppercase tracking-widest">© 2026 FUHUNG AI Art</p>
+                <p className="text-slate-300 text-[9px] uppercase tracking-widest">© 2026 FUHUNG Art Analysis</p>
+                <button onClick={() => setShowAgreement(true)} className="text-slate-400 text-[10px] mt-1.5 hover:text-slate-600 transition-colors underline decoration-slate-300">用户协议与隐私条款</button>
               </footer>
             </div>
           )}

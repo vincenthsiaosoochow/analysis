@@ -164,6 +164,12 @@ const Exhibitions: React.FC<ExhibitionsProps> = ({ onNavigateDetail, onBack }) =
                     <span className="material-symbols-outlined">arrow_upward</span>
                 </button>
             )}
+
+            {/* Global Footer */}
+            <footer className="w-full py-10 flex flex-col items-center justify-center bg-transparent">
+                <p className="text-slate-300 text-[9px] uppercase tracking-widest">© 2026 FUHUNG Art Analysis</p>
+                <p className="text-slate-400 text-[10px] mt-1.5 hover:text-slate-600 transition-colors cursor-default underline decoration-slate-200">用户协议与隐私条款</p>
+            </footer>
         </div>
     );
 };

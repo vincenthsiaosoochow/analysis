@@ -258,11 +258,7 @@ const AnalysisView: React.FC<AnalysisViewProps> = ({ analysis, onBack, isSaved =
           )}
 
           {/* Clean Footer for the Analysis Report */}
-          <div className="pt-16 pb-12 mt-10 border-t border-slate-200 bg-white -mx-5 px-10 flex flex-col items-center justify-center">
-            <ReportLogo />
-
-            <div className="w-full h-px bg-gradient-to-r from-transparent via-slate-100 to-transparent my-8 opacity-50"></div>
-
+          <div className="pt-12 pb-12 mt-10 border-t border-slate-200 bg-white -mx-5 px-10 flex flex-col items-center justify-center">
             <div className="text-left">
               <div className="flex gap-2 items-start mb-2">
                 <span className="material-symbols-outlined text-slate-400 text-[16px] shrink-0 mt-0.5">info</span>
@@ -271,12 +267,12 @@ const AnalysisView: React.FC<AnalysisViewProps> = ({ analysis, onBack, isSaved =
               <p className="text-[9px] text-slate-400 px-1 leading-relaxed">
                 用户自主上传的艺术品图片，其版权归属与合法性由上传用户自行承担。本平台 AI 生成的分析报告仅供参考，不构成任何投资建议。艺术品市场存在价格波动、流动性等风险，投资决策请审慎评估，平台不对相关投资损失承担法律责任。
               </p>
-              <div className="mt-4 text-center">
-                <div className="text-slate-400 text-[10px] font-medium hover:text-slate-600 transition-colors cursor-default underline decoration-slate-200">
-                  用户协议与隐私条款
-                </div>
-              </div>
             </div>
+
+            <div className="w-full h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent my-6"></div>
+
+            <p className="text-slate-300 text-[9px] uppercase tracking-widest">© 2026 FUHUNG Art Analysis</p>
+            <p className="text-slate-400 text-[10px] mt-1.5 hover:text-slate-600 transition-colors cursor-default underline decoration-slate-200">用户协议与隐私条款</p>
           </div>
         </div>
       </main>
