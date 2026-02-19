@@ -180,6 +180,28 @@ const ExhibitionDetail: React.FC<ExhibitionDetailProps> = ({ id, onBack, onNavig
                         </div>
                     </div>
 
+                    {/* Share Button */}
+                    <div className="mt-8 flex justify-center">
+                        <button
+                            onClick={async () => {
+                                const shareTitle = exhibition.title;
+                                const shareText = `${exhibition.title} | ${exhibition.venue} | ${formatDate(exhibition.start_date)} - ${formatDate(exhibition.end_date)}`;
+                                if (navigator.share) {
+                                    try {
+                                        await navigator.share({ title: shareTitle, text: shareText, url: window.location.href });
+                                    } catch { /* 用户取消分享 */ }
+                                } else {
+                                    await navigator.clipboard.writeText(`${shareText}\n${window.location.href}`);
+                                    alert('展览信息已复制到剪贴板');
+                                }
+                            }}
+                            className="flex items-center gap-2 px-6 py-3 bg-primary/10 text-primary font-bold text-sm rounded-xl hover:bg-primary/20 active:scale-95 transition-all"
+                        >
+                            <span className="material-symbols-outlined text-lg">share</span>
+                            分享展览
+                        </button>
+                    </div>
+
                     {/* Copyright Notice */}
                     <div className="mt-12 pt-8 border-t border-slate-100">
                         <div className="flex gap-3 items-start">
