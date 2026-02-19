@@ -263,12 +263,18 @@ const AnalysisView: React.FC<AnalysisViewProps> = ({ analysis, onBack, isSaved =
 
             <div className="w-full h-px bg-gradient-to-r from-transparent via-slate-100 to-transparent my-8 opacity-50"></div>
 
-            <div className="text-center">
-              <p className="text-[9px] text-slate-400 mb-2 px-4 leading-relaxed opacity-60">
-                本页面艺术分析报告由AI自主生成，不具备艺术品投资建议，仅供艺术研究与交流。
+            <div className="text-left">
+              <div className="flex gap-2 items-start mb-2">
+                <span className="material-symbols-outlined text-slate-400 text-[16px] shrink-0 mt-0.5">info</span>
+                <p className="text-[10px] text-slate-500 font-bold">版权声明</p>
+              </div>
+              <p className="text-[9px] text-slate-400 px-1 leading-relaxed">
+                用户自主上传的艺术品图片，其版权归属与合法性由上传用户自行承担。本平台 AI 生成的分析报告仅供参考，不构成任何投资建议。艺术品市场存在价格波动、流动性等风险，投资决策请审慎评估，平台不对相关投资损失承担法律责任。
               </p>
-              <div className="text-slate-400 text-[10px] font-medium hover:text-slate-600 transition-colors cursor-default underline decoration-slate-200">
-                用户协议与隐私条款
+              <div className="mt-4 text-center">
+                <div className="text-slate-400 text-[10px] font-medium hover:text-slate-600 transition-colors cursor-default underline decoration-slate-200">
+                  用户协议与隐私条款
+                </div>
               </div>
             </div>
           </div>
