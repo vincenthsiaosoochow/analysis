@@ -1,7 +1,6 @@
 
 import React, { useRef } from 'react';
 import { ArtworkAnalysis } from '../types';
-import html2canvas from 'html2canvas';
 
 interface AnalysisViewProps {
   analysis: ArtworkAnalysis;
@@ -25,8 +24,6 @@ const ReportLogo: React.FC = () => (
 
 const AnalysisView: React.FC<AnalysisViewProps> = ({ analysis, onBack, isSaved = false, onToggleSave, onLogin }) => {
   const reportRef = useRef<HTMLDivElement>(null);
-  const [posterUrl, setPosterUrl] = React.useState<string | null>(null);
-  const [isGeneratingPoster, setIsGeneratingPoster] = React.useState(false);
 
   const getRatingColor = (rating: string) => {
     switch (rating) {
@@ -38,36 +35,7 @@ const AnalysisView: React.FC<AnalysisViewProps> = ({ analysis, onBack, isSaved =
     }
   };
 
-  const handleSavePoster = async () => {
-    if (!reportRef.current) return;
-    setIsGeneratingPoster(true);
-    try {
-      // Small delay to ensure UI updates before heavy task
-      await new Promise(resolve => setTimeout(resolve, 100));
 
-      const canvas = await html2canvas(reportRef.current, {
-        useCORS: true,
-        scale: 3,
-        backgroundColor: '#F8FAFC',
-        logging: false,
-      });
-      const dataUrl = canvas.toDataURL('image/png');
-      setPosterUrl(dataUrl);
-    } catch (error) {
-      console.error('Failed to save poster:', error);
-      alert('生成海报失败，请稍后重试');
-    } finally {
-      setIsGeneratingPoster(false);
-    }
-  };
-
-  const handleDownloadPoster = () => {
-    if (!posterUrl) return;
-    const link = document.createElement('a');
-    link.download = `FUHUNG_Report_${analysis.title}.png`;
-    link.href = posterUrl;
-    link.click();
-  };
 
   const handleShare = async () => {
     const shareTitle = `${analysis.artist}-${analysis.title} | 分析报告`;
@@ -309,18 +277,6 @@ const AnalysisView: React.FC<AnalysisViewProps> = ({ analysis, onBack, isSaved =
 
       <div className="fixed bottom-0 left-0 right-0 p-5 bg-white/90 backdrop-blur-xl border-t border-slate-100 flex gap-4 max-w-md mx-auto z-50">
         <button
-          onClick={handleSavePoster}
-          disabled={isGeneratingPoster}
-          className="flex-1 flex items-center justify-center gap-2 bg-slate-50 border border-slate-100 text-slate-900 font-semibold py-4 rounded-xl active:scale-[0.98] transition-all disabled:opacity-50"
-        >
-          {isGeneratingPoster ? (
-            <span className="material-symbols-outlined text-xl animate-spin">refresh</span>
-          ) : (
-            <span className="material-symbols-outlined text-xl">wallpaper</span>
-          )}
-          {isGeneratingPoster ? '生成中...' : '生成海报'}
-        </button>
-        <button
           onClick={handleShare}
           className="flex-1 flex items-center justify-center gap-2 bg-fuhung-blue text-white font-semibold py-4 rounded-xl shadow-lg shadow-fuhung-blue/20 active:scale-[0.98] transition-all"
         >
@@ -329,28 +285,7 @@ const AnalysisView: React.FC<AnalysisViewProps> = ({ analysis, onBack, isSaved =
         </button>
       </div>
 
-      {posterUrl && (
-        <div className="fixed inset-0 z-[100] bg-black/90 flex flex-col items-center justify-center p-6 backdrop-blur-md animate-fade-in">
-          <div className="relative w-full max-w-sm">
-            <button
-              onClick={() => setPosterUrl(null)}
-              className="absolute -top-12 right-0 material-symbols-outlined text-white/50 hover:text-white"
-            >
-              close
-            </button>
-            <h3 className="text-white text-center mb-4 text-sm font-medium tracking-widest uppercase">
-              长按图片保存到相册
-            </h3>
-            <img src={posterUrl} className="w-full h-auto rounded-xl shadow-2xl" />
-            <button
-              onClick={handleDownloadPoster}
-              className="w-full mt-6 bg-white text-slate-900 py-3 rounded-xl font-bold active:scale-95 transition-all text-sm hidden md:block"
-            >
-              下载图片
-            </button>
-          </div>
-        </div>
-      )}
+
     </div>
   );
 };
