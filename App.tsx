@@ -92,6 +92,9 @@ const App: React.FC = () => {
   const [myExhibitions, setMyExhibitions] = useState<Exhibition[]>([]);
   const [analysis, setAnalysis] = useState<ArtworkAnalysis | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  // 用户可选填的艺术品提示信息，帮助 AI 更准确地识别
+  const [artworkHints, setArtworkHints] = useState({ title: '', artist: '' });
+  const [showHints, setShowHints] = useState(false);
   const [showAgreement, setShowAgreement] = useState(false);
   const [authView, setAuthView] = useState<AuthView>('none');
   const [searchQuery, setSearchQuery] = useState('');
@@ -254,9 +257,16 @@ const App: React.FC = () => {
     setIsAnalyzing(true);
     try {
       const { analysisAPI } = await import('./services/apiService');
-      const result = await analysisAPI.analyze(file);
+      const result = await analysisAPI.analyze(
+        file,
+        artworkHints.title || undefined,
+        artworkHints.artist || undefined
+      );
       setAnalysis(result);
       setMyAnalyses(prev => [result, ...prev]);
+      // 分析完成后清空提示信息
+      setArtworkHints({ title: '', artist: '' });
+      setShowHints(false);
     } catch (error) {
       console.error("Analysis failed", error);
       alert(error instanceof Error ? error.message : "分析失败，请重试。");
@@ -460,6 +470,38 @@ const App: React.FC = () => {
           <div className="absolute -top-3 -right-3 bg-fuhung-blue text-white text-[10px] font-bold px-3 py-1 rounded-full shadow-lg animate-bounce">会员专享</div>
         )}
       </div>
+
+      {/* 可折叠的补充信息面板 */}
+      {isLoggedIn && (
+        <div className="mb-8 max-w-[340px] mx-auto">
+          <button
+            onClick={() => setShowHints(!showHints)}
+            className="flex items-center gap-1.5 text-slate-400 text-xs hover:text-slate-600 transition-colors mx-auto"
+          >
+            <span className="material-symbols-outlined text-[16px]">{showHints ? 'expand_less' : 'add_circle'}</span>
+            {showHints ? '收起补充信息' : '补充作品信息（可选）'}
+          </button>
+          {showHints && (
+            <div className="mt-3 bg-slate-50 rounded-2xl p-5 space-y-3 animate-fade-in border border-slate-100">
+              <p className="text-[10px] text-slate-400 leading-relaxed">提供作品信息可帮助 AI 更精准地分析，AI 仍会独立验证</p>
+              <input
+                type="text"
+                placeholder="艺术品名称"
+                value={artworkHints.title}
+                onChange={(e) => setArtworkHints(prev => ({ ...prev, title: e.target.value }))}
+                className="w-full px-4 py-2.5 bg-white rounded-xl text-sm border border-slate-200 focus:border-primary focus:outline-none transition-colors placeholder:text-slate-300"
+              />
+              <input
+                type="text"
+                placeholder="艺术家姓名"
+                value={artworkHints.artist}
+                onChange={(e) => setArtworkHints(prev => ({ ...prev, artist: e.target.value }))}
+                className="w-full px-4 py-2.5 bg-white rounded-xl text-sm border border-slate-200 focus:border-primary focus:outline-none transition-colors placeholder:text-slate-300"
+              />
+            </div>
+          )}
+        </div>
+      )}
 
       <section className="mb-10">
         <div className="flex items-center justify-between mb-6">

@@ -126,10 +126,15 @@ export const authAPI = {
 export const analysisAPI = {
     /**
      * 上传并分析艺术品图片
+     * @param imageFile 艺术品图片文件
+     * @param title 用户提供的艺术品名称（可选，作为 AI 分析参考）
+     * @param artist 用户提供的艺术家姓名（可选，作为 AI 分析参考）
      */
-    analyze: async (imageFile: File) => {
+    analyze: async (imageFile: File, title?: string, artist?: string) => {
         const formData = new FormData();
         formData.append('image', imageFile);
+        if (title?.trim()) formData.append('title', title.trim());
+        if (artist?.trim()) formData.append('artist', artist.trim());
 
         const token = localStorage.getItem('auth_token');
         const response = await fetch(`${API_BASE_URL}/api/analysis/analyze`, {

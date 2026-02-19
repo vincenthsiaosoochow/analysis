@@ -10,12 +10,14 @@ from openai import OpenAI
 from app.config import settings
 
 
-def analyze_artwork_with_qianwen(image_base64: str) -> Dict[str, Any]:
+def analyze_artwork_with_qianwen(image_base64: str, user_title: str = None, user_artist: str = None) -> Dict[str, Any]:
     """
     使用通义千问 API 分析艺术品图片
     
     Args:
         image_base64: base64 编码的图片数据
+        user_title: 用户提供的艺术品名称（可选，仅作参考）
+        user_artist: 用户提供的艺术家姓名（可选，仅作参考）
     
     Returns:
         分析结果字典
@@ -123,6 +125,19 @@ def analyze_artwork_with_qianwen(image_base64: str) -> Dict[str, Any]:
     "alternatives": "同类替代标的"
   }
 }"""
+    
+    # NOTE: 当用户提供了参考信息时，追加到 prompt 中作为 AI 的辅助线索
+    if user_title or user_artist:
+        hint = "\n\n### 用户参考信息（仅作参考，需独立验证）\n"
+        hint += "上传者提供了以下信息，请将其作为分析线索之一，"
+        hint += "但你必须通过画作本身的视觉特征独立判断。"
+        hint += "若你的判断与用户信息一致，可增强置信度；"
+        hint += "若有冲突，以你的专业分析为准。\n"
+        if user_title:
+            hint += f"- 用户声称作品名称为：「{user_title}」\n"
+        if user_artist:
+            hint += f"- 用户声称艺术家为：「{user_artist}」\n"
+        user_prompt += hint
     
     try:
         # 处理 base64 图片数据

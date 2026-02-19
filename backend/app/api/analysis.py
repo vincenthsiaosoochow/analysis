@@ -2,7 +2,7 @@
 艺术品分析相关 API 路由
 """
 from typing import Optional
-from fastapi import APIRouter, Depends, File, UploadFile, HTTPException, Query, Response
+from fastapi import APIRouter, Depends, File, UploadFile, HTTPException, Query, Response, Form
 from sqlalchemy.orm import Session, defer
 from sqlalchemy import or_, func
 import random
@@ -23,21 +23,30 @@ router = APIRouter(prefix="/analysis", tags=["艺术品分析"])
 @router.post("/analyze", response_model=ArtworkAnalysisResponse)
 async def analyze_artwork(
     image: UploadFile = File(...),
+    title: Optional[str] = Form(None, description="用户提供的艺术品名称（可选）"),
+    artist: Optional[str] = Form(None, description="用户提供的艺术家姓名（可选）"),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     """
     分析上传的艺术品图片
-    需要用户认证
+    需要用户认证，可选填写艺术品名称和艺术家姓名作为 AI 分析参考
     """
     # 保存图片并获取 base64 数据
     image_url, base64_data = await save_uploaded_image(image)
     
-    # 调用通义千问分析
+    # 调用通义千问分析（传递用户提示信息）
+    user_title = title.strip() if title else None
+    user_artist = artist.strip() if artist else None
+    if user_title or user_artist:
+        logger.info(f"User provided hints - title: {user_title}, artist: {user_artist}")
+    
     logger.info(f"Starting AI analysis for image, size: {len(base64_data)} chars")
     loop = asyncio.get_running_loop()
     try:
-        analysis_result = await loop.run_in_executor(None, analyze_artwork_with_qianwen, base64_data)
+        analysis_result = await loop.run_in_executor(
+            None, analyze_artwork_with_qianwen, base64_data, user_title, user_artist
+        )
         logger.info("AI analysis completed successfully")
     except Exception as e:
         error_msg = str(e)
