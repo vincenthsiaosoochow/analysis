@@ -8,10 +8,13 @@ from sqlalchemy.orm import sessionmaker
 from app.config import settings
 
 # 创建数据库引擎
+# NOTE: 显式限制连接池大小,避免容器内存被大量连接占用
 engine = create_engine(
     settings.DATABASE_URL,
-    pool_pre_ping=True,  # 连接池预检查
-    pool_recycle=3600,   # 连接回收时间
+    pool_pre_ping=True,   # 连接池预检查
+    pool_recycle=3600,    # 连接回收时间(秒)
+    pool_size=3,          # 常驻连接数(Zeabur小实例建议3-5)
+    max_overflow=5,       # 允许额外创建的临时连接数
 )
 
 # 创建会话工厂

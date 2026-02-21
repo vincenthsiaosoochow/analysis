@@ -8,6 +8,9 @@ from typing import Dict, Any
 from openai import OpenAI
 
 from app.config import settings
+from app.utils.logger import get_logger
+
+logger = get_logger(__name__)
 
 
 def analyze_artwork_with_qianwen(image_base64: str, user_title: str = None, user_artist: str = None) -> Dict[str, Any]:
@@ -27,11 +30,7 @@ def analyze_artwork_with_qianwen(image_base64: str, user_title: str = None, user
         raise ValueError("Server configuration error: DASHSCOPE_API_KEY mismatch")
     
     # 创建 OpenAI 客户端（通义千问兼容 OpenAI API）
-    print(f"[DEBUG] Initializing Qwen Client. Model: {settings.QIANWEN_MODEL}, Base URL: {settings.QIANWEN_BASE_URL}")
-    if settings.DASHSCOPE_API_KEY:
-        print(f"[DEBUG] API Key present: {settings.DASHSCOPE_API_KEY[:4]}***")
-    else:
-        print("[ERROR] DASHSCOPE_API_KEY is missing!")
+    logger.debug(f"Initializing Qwen Client. Model: {settings.QIANWEN_MODEL}")
 
     client = OpenAI(
         api_key=settings.DASHSCOPE_API_KEY,
@@ -178,20 +177,14 @@ def analyze_artwork_with_qianwen(image_base64: str, user_title: str = None, user
         
         # 检查是否包含违规标记
         if result.get("error") == "nsfw_detected":
-            print(f"[WARN] NSFW content detected: {result.get('reason')}")
+            logger.warning(f"NSFW content detected: {result.get('reason')}")
             raise ValueError("NSFW_DETECTED")
         
         return result
         
     except Exception as e:
-        import traceback
-        error_details = traceback.format_exc()
-        # Only log if it's not our intentional NSFW error (which is expected)
         if str(e) != "NSFW_DETECTED":
-            print(f"[ERROR] 通义千问 API 调用失败: {str(e)}")
-            print(f"[ERROR] 堆栈信息:\n{error_details}")
-        
-        # Re-raise the exception to be handled by the caller
+            logger.error(f"通义千问 API 调用失败: {e}", exc_info=True)
         raise e
 
 

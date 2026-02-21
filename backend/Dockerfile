@@ -19,8 +19,12 @@ RUN pip install --no-cache-dir -r requirements.txt
 # 复制应用代码
 COPY . .
 
+# 设置生产环境标识(logger.py 据此决定是否写文件日志)
+ENV ENVIRONMENT=production
+
 # 暴露端口
 EXPOSE 8000
 
 # 启动命令
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# --limit-max-requests=1000: worker 处理 1000 个请求后自动重启,防止内存泄漏累积
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--limit-max-requests", "1000"]

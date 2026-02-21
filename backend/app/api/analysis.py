@@ -178,7 +178,7 @@ def discover_analyses(
     if sort == "featured":
         # 精选模式：逻辑稍复杂
         # 1. 获取一个较大的候选池（例如最近500条或点赞前500条），在内存中筛选S级
-        candidate_limit = 500
+        candidate_limit = 200  # NOTE: 降低候选池大小以减少内存占用
         # 优先取有点赞的，质量可能更高
         query = query.order_by(ArtworkAnalysis.likes.desc(), ArtworkAnalysis.created_at.desc())
         analyses = query.limit(candidate_limit).all()
