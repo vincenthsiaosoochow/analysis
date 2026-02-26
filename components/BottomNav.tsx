@@ -10,7 +10,6 @@ const BottomNav: React.FC<BottomNavProps> = ({ currentTab, onTabChange }) => {
   const tabs = [
     { id: AppTab.HOME, label: '首页', icon: 'home' },
     { id: AppTab.DISCOVER, label: '发现', icon: 'explore' },
-    { id: AppTab.EXHIBITIONS, label: '展览', icon: 'museum' }, // Added Exhibition tab
     { id: AppTab.PROFILE, label: '我的', icon: 'person' },
   ];
 
