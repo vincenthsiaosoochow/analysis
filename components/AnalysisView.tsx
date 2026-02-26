@@ -55,19 +55,21 @@ const AnalysisView: React.FC<AnalysisViewProps> = ({ analysis, onBack, isSaved =
   const handleShare = async () => {
     const shareTitle = `${analysis.artist}-${analysis.title} | 分析报告`;
     const shareText = `这是由 FUHUNG AI 生成的专业艺术品投资分析报告，深度解析了作品《${analysis.title}》的艺术价值与市场潜力。`;
+    // NOTE: 使用 hash 路由构建分享 URL，确保打开链接能直接看到报告
+    const shareUrl = `${window.location.origin}/#/report/${analysis.id}`;
 
     if (navigator.share) {
       try {
         await navigator.share({
           title: shareTitle,
           text: shareText,
-          url: window.location.href,
+          url: shareUrl,
         });
       } catch (error) {
         console.log('Share cancelled or failed:', error);
       }
     } else {
-      await navigator.clipboard.writeText(`${shareTitle}\n${shareText}\n${window.location.href}`);
+      await navigator.clipboard.writeText(`${shareTitle}\n${shareText}\n${shareUrl}`);
       alert('分享链接已复制到剪贴板');
     }
   };

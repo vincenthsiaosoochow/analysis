@@ -80,10 +80,59 @@ const App: React.FC = () => {
     avatar: 'https://picsum.photos/seed/user-main/200/200'
   };
 
-  const [currentTab, setCurrentTab] = useState<AppTab>(AppTab.HOME);
+  const [currentTab, setCurrentTabRaw] = useState<AppTab>(AppTab.HOME);
 
   // User Profile - Collection
-  const [analysis, setAnalysis] = useState<ArtworkAnalysis | null>(null);
+  const [analysis, setAnalysisRaw] = useState<ArtworkAnalysis | null>(null);
+
+  // NOTE: Hash 路由 — 让每个页面有独立 URL，支持分享链接直接打开报告
+  const setCurrentTab = useCallback((tab: AppTab) => {
+    setCurrentTabRaw(tab);
+    // 切换 Tab 时更新 URL hash
+    const tabRoutes: Record<string, string> = {
+      [AppTab.HOME]: '#/home',
+      [AppTab.DISCOVER]: '#/discover',
+      [AppTab.PROFILE]: '#/profile',
+      [AppTab.ADMIN]: '#/admin',
+    };
+    window.location.hash = tabRoutes[tab] || '#/home';
+  }, []);
+
+  const setAnalysis = useCallback((a: ArtworkAnalysis | null) => {
+    setAnalysisRaw(a);
+    if (a && a.id) {
+      // 打开报告时，URL 变为 #/report/ID
+      window.location.hash = `#/report/${a.id}`;
+    }
+  }, []);
+
+  // 从 hash 恢复状态（首次加载 + 分享链接）
+  useEffect(() => {
+    const handleHash = async () => {
+      const hash = window.location.hash;
+      if (hash.startsWith('#/report/')) {
+        const id = parseInt(hash.replace('#/report/', ''), 10);
+        if (!isNaN(id)) {
+          try {
+            const report = await analysisAPI.getAnalysisById(id);
+            setAnalysisRaw(report);
+          } catch {
+            console.error('Failed to load report from share link');
+          }
+        }
+      } else if (hash === '#/discover') {
+        setCurrentTabRaw(AppTab.DISCOVER);
+      } else if (hash === '#/profile') {
+        setCurrentTabRaw(AppTab.PROFILE);
+      } else if (hash === '#/admin') {
+        setCurrentTabRaw(AppTab.ADMIN);
+      }
+    };
+
+    handleHash();
+    window.addEventListener('hashchange', handleHash);
+    return () => window.removeEventListener('hashchange', handleHash);
+  }, []);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   // 用户可选填的艺术品提示信息，帮助 AI 更准确地识别
   const [artworkHints, setArtworkHints] = useState({ title: '', artist: '' });
@@ -237,7 +286,8 @@ const App: React.FC = () => {
         artworkHints.title || undefined,
         artworkHints.artist || undefined
       );
-      setAnalysis(result);
+      setAnalysisRaw(result);
+      window.location.hash = `#/report/${result.id}`;
       setMyAnalyses(prev => [result, ...prev]);
       // 分析完成后清空提示信息
       setArtworkHints({ title: '', artist: '' });
@@ -494,7 +544,7 @@ const App: React.FC = () => {
         <ErrorBoundary>
           <AnalysisView
             analysis={analysis}
-            onBack={() => setAnalysis(null)}
+            onBack={() => { setAnalysisRaw(null); window.history.back(); }}
             isSaved={isSaved(analysis.id)}
             onToggleSave={() => toggleSaveAnalysis(analysis)}
             onLogin={() => setAuthView('login')}
