@@ -15,6 +15,9 @@ from sqlalchemy import text
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
+import logging
+
+_logger = logging.getLogger("app.main")
 
 # 创建数据库表
 try:
@@ -41,9 +44,9 @@ try:
         except Exception:
             pass
         conn.commit()
-    print("Database schema updated successfully.")
+    _logger.info("Database schema updated successfully.")
 except Exception as e:
-    print(f"Schema update/check warning: {e}")
+    _logger.warning(f"Schema update/check warning: {e}")
 
 # 自动设置指定用户为管理员
 def promote_to_admin(phone_number: str, db_engine):
@@ -57,18 +60,17 @@ def promote_to_admin(phone_number: str, db_engine):
         if user and user.is_admin != 1:
             user.is_admin = 1
             db.commit()
-            print(f"Successfully promoted user {user.name} ({user.phone}) to ADMIN.")
+            _logger.info(f"Promoted user {user.phone} to ADMIN.")
     except Exception as e:
-        print(f"Error promoting user: {e}")
+        _logger.error(f"Error promoting user: {e}")
     finally:
         db.close()
 
 # 执行自动提升
 try:
     promote_to_admin('13218185056', engine)
-    print("Auto-promotion check completed for 13218185056")
 except Exception as e:
-    print(f"Error executing auto-promotion sequence: {e}")
+    _logger.error(f"Error executing auto-promotion sequence: {e}")
 
 # 创建 FastAPI 应用
 app = FastAPI(

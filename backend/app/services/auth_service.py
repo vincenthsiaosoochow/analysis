@@ -78,13 +78,9 @@ def login_user(login_data: UserLogin, db: Session) -> dict:
     
     # 生成 JWT token
     try:
-        # 确保 sub 是字符串
         user_id_str = str(user.id)
-        print(f"[DEBUG] Creating token for user_id: {user_id_str}")
         token = create_access_token(data={"sub": user_id_str})
-        print(f"[DEBUG] Token created successfully: {token[:20]}...")
     except Exception as e:
-        print(f"[ERROR] Token creation failed: {e}")
         raise
     
     return {

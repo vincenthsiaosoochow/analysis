@@ -26,35 +26,30 @@ def get_current_user(
     token = credentials.credentials
     try:
         payload = decode_access_token(token)
-        print(f"[DEBUG] Token Payload: {payload}")  # 调试日志
-    except Exception as e:
-        print(f"[DEBUG] Token Decode Error: {e}")
+    except Exception:
         payload = None
-    
+
     if payload is None:
-        print("[DEBUG] Payload is None after decoding")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="无效的认证令牌"
         )
-    
+
     user_id = payload.get("sub")
-    print(f"[DEBUG] User ID from payload: {user_id} (type: {type(user_id)})")
-    
+
     if user_id is None:
-        print("[DEBUG] User ID (sub) not found in payload")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="无效的认证令牌"
         )
-    
+
     user = db.query(User).filter(User.id == user_id).first()
     if user is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="用户不存在"
         )
-    
+
     return user
 
 
