@@ -1,6 +1,6 @@
 # Build Stage for Frontend
 FROM node:22-alpine as frontend-build
-ARG CACHE_BUST=2026-02-26-v5
+ARG CACHE_BUST=2026-02-26-v6
 WORKDIR /app
 COPY package*.json ./
 RUN npm install
@@ -24,12 +24,11 @@ COPY backend/init_db.py .
 # Copy built frontend assets from previous stage
 COPY --from=frontend-build /app/dist ./static
 
-# Expose port
-ENV PORT=8000
+# NOTE: Zeabur 运行时会注入 PORT=8080，此处不再硬编码
 # 设置生产环境标识(logger.py 据此决定是否写文件日志)
 ENV ENVIRONMENT=production
-EXPOSE 8000
+EXPOSE 8080
 
 # Start command
 # --limit-max-requests=1000: worker 处理 1000 个请求后自动重启,防止内存泄漏累积
-CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT} --limit-max-requests 1000"]
+CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8080} --limit-max-requests 1000"]
