@@ -1,6 +1,6 @@
 # Build Stage for Frontend
 FROM node:22-alpine as frontend-build
-ARG CACHE_BUST=2026-02-26-v4
+ARG CACHE_BUST=2026-02-26-v5
 WORKDIR /app
 COPY package*.json ./
 RUN npm install
@@ -8,15 +8,14 @@ COPY . .
 RUN npm run build
 
 # Runtime Stage for Backend
-# 使用阿里云镜像源，避免 Docker Hub 访问超时
-FROM registry.cn-hangzhou.aliyuncs.com/library/python:3.11-slim
+FROM python:3.11-slim
 LABEL "language"="python"
 LABEL "framework"="fastapi"
 WORKDIR /app
 
-# Install dependencies（使用阿里云 PyPI 镜像加速）
+# Install dependencies
 COPY backend/requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt -i https://mirrors.aliyun.com/pypi/simple/
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy backend code
 COPY backend/app ./app
