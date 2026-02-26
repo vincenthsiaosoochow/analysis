@@ -677,7 +677,7 @@ const App: React.FC = () => {
           )
           }
 
-          {/* Exhibition Tab - 已隐藏 */}
+
 
           <BottomNav currentTab={currentTab} onTabChange={setCurrentTab} />
         </>
