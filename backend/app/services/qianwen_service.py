@@ -35,8 +35,8 @@ def analyze_artwork_with_qianwen(image_base64: str, user_title: str = None, user
     client = OpenAI(
         api_key=settings.DASHSCOPE_API_KEY,
         base_url=settings.QIANWEN_BASE_URL,
-        timeout=60.0,  # 设置明确的超时时间
-        max_retries=1
+        timeout=120.0,  # 通义千问分析大图+长提示词需要较长时间
+        max_retries=2
     )
     
     # 构建分析提示词
