@@ -6,14 +6,29 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
 from app.config import settings
+import logging
+
+_db_logger = logging.getLogger("app.database")
 
 # NOTE: Zeabur 注入的 DATABASE_URL 可能用 mysql:// 前缀（MySQLdb 驱动），
 # 但我们只安装了 pymysql，需要自动修正为 mysql+pymysql://
 _db_url = settings.DATABASE_URL
+_db_logger.warning(f"Original DATABASE_URL scheme: {_db_url.split('://')[0] if '://' in _db_url else 'UNKNOWN'}")
+
 if _db_url.startswith("mysql://"):
     _db_url = _db_url.replace("mysql://", "mysql+pymysql://", 1)
+    _db_logger.warning("Auto-corrected DATABASE_URL: mysql:// -> mysql+pymysql://")
 elif _db_url.startswith("mysql+mysqldb://"):
     _db_url = _db_url.replace("mysql+mysqldb://", "mysql+pymysql://", 1)
+    _db_logger.warning("Auto-corrected DATABASE_URL: mysql+mysqldb:// -> mysql+pymysql://")
+
+# 日志中显示连接目标（隐藏密码）
+try:
+    _parts = _db_url.split("@")
+    if len(_parts) > 1:
+        _db_logger.warning(f"Connecting to: ...@{_parts[-1]}")
+except Exception:
+    pass
 
 # 创建数据库引擎
 # NOTE: 显式限制连接池大小,避免容器内存被大量连接占用
