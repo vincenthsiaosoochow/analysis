@@ -24,9 +24,8 @@ try:
     Base.metadata.create_all(bind=engine)
     _logger.info("Database tables created/verified.")
 except Exception as e:
-    # NOTE: 不再 raise — 让应用继续启动，API 请求会返回具体错误
-    # 避免因数据库暂时不可用导致整个容器反复崩溃(502)
     _logger.error(f"Failed to create database tables: {e}")
+    raise  # 数据库表必须创建成功，否则所有 API 都会 500
 
 # NOTE: 以下 ALTER TABLE 均为兼容性迁移，全部捕获异常避免影响启动
 # 全新数据库 create_all 已创建正确结构，ALTER 仅用于升级旧数据库
