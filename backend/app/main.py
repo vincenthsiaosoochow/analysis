@@ -22,10 +22,21 @@ _logger = logging.getLogger("app.main")
 # 创建数据库表
 try:
     Base.metadata.create_all(bind=engine)
-    # 自动迁移：确保 image_url 是 LONGTEXT
+    _logger.info("Database tables created/verified.")
+except Exception as e:
+    _logger.error(f"Failed to create database tables: {e}")
+    raise  # 致命错误，必须停止启动
+
+# NOTE: 以下 ALTER TABLE 均为兼容性迁移，全部捕获异常避免影响启动
+# 全新数据库 create_all 已创建正确结构，ALTER 仅用于升级旧数据库
+try:
     with engine.connect() as conn:
-        conn.execute(text("ALTER TABLE artwork_analyses MODIFY image_url LONGTEXT COMMENT '作品图片URL';"))
-        # 尝试添加管理员相关字段 (Safe migration)
+        # 确保 image_url 是 LONGTEXT（旧版本可能是 TEXT）
+        try:
+            conn.execute(text("ALTER TABLE artwork_analyses MODIFY image_url LONGTEXT COMMENT '作品图片URL';"))
+        except Exception:
+            pass
+        # 添加管理员字段
         try:
             conn.execute(text("ALTER TABLE users ADD COLUMN is_admin TINYINT DEFAULT 0 COMMENT '是否为管理员';"))
         except Exception:
@@ -38,15 +49,15 @@ try:
             conn.execute(text("ALTER TABLE users ADD COLUMN is_deleted TINYINT DEFAULT 0 COMMENT '是否已删除';"))
         except Exception:
             pass
-        # 确保 exhibitions 表的 cover_image 字段为 LONGTEXT 类型（支持 Data URI 存储）
+        # 确保 cover_image 是 LONGTEXT
         try:
             conn.execute(text("ALTER TABLE exhibitions MODIFY cover_image LONGTEXT COMMENT '封面图（Data URI格式）';"))
         except Exception:
             pass
         conn.commit()
-    _logger.info("Database schema updated successfully.")
+    _logger.info("Database schema migration completed.")
 except Exception as e:
-    _logger.warning(f"Schema update/check warning: {e}")
+    _logger.warning(f"Schema migration warning (non-fatal): {e}")
 
 # 自动设置指定用户为管理员
 def promote_to_admin(phone_number: str, db_engine):
