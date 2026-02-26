@@ -27,10 +27,11 @@ def analyze_artwork_with_qianwen(image_base64: str, user_title: str = None, user
     """
     # 如果 API key 未配置，抛出错误
     if not settings.DASHSCOPE_API_KEY:
-        raise ValueError("Server configuration error: DASHSCOPE_API_KEY mismatch")
+        raise ValueError("Server configuration error: DASHSCOPE_API_KEY not set")
     
     # 创建 OpenAI 客户端（通义千问兼容 OpenAI API）
-    logger.debug(f"Initializing Qwen Client. Model: {settings.QIANWEN_MODEL}")
+    _key = settings.DASHSCOPE_API_KEY
+    logger.warning(f"Using API key: {_key[:8]}...{_key[-4:]} (len={len(_key)})")
 
     client = OpenAI(
         api_key=settings.DASHSCOPE_API_KEY,
