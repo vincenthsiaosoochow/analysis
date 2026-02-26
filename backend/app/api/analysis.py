@@ -58,9 +58,11 @@ async def analyze_artwork(
             )
             
         logger.error(f"AI analysis failed: {e}", exc_info=True)
+        # NOTE: 返回具体错误信息帮助诊断问题
+        error_detail = str(e)
         raise HTTPException(
             status_code=422,
-            detail="AI分析服务暂时不可用或分析失败，请重试。"
+            detail=f"AI分析失败: {error_detail}"
         )
 
     # --- Validation Start ---
