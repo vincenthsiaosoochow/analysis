@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
 from app.database import engine, Base
-from app.api import auth_router, analysis_router, admin_router, exhibitions, upload_router
+from app.api import auth_router, analysis_router, admin_router, upload_router
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 import os
@@ -47,11 +47,6 @@ try:
             pass
         try:
             conn.execute(text("ALTER TABLE users ADD COLUMN is_deleted TINYINT DEFAULT 0 COMMENT '是否已删除';"))
-        except Exception:
-            pass
-        # 确保 cover_image 是 LONGTEXT
-        try:
-            conn.execute(text("ALTER TABLE exhibitions MODIFY cover_image LONGTEXT COMMENT '封面图（Data URI格式）';"))
         except Exception:
             pass
         conn.commit()
@@ -112,7 +107,6 @@ api_app = FastAPI(title="FUHUNG API")
 api_app.include_router(auth_router)
 api_app.include_router(analysis_router)
 api_app.include_router(admin_router)
-api_app.include_router(exhibitions.router)
 api_app.include_router(upload_router)
 
 # NOTE: 图片现在使用 Data URI 存储在数据库中，不再需要挂载 uploads 目录

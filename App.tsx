@@ -1,16 +1,13 @@
 
 import React, { useState, useCallback, useRef, useMemo, useEffect } from 'react';
-import { AppTab, ArtworkAnalysis, UserProfile, Exhibition } from './types';
+import { AppTab, ArtworkAnalysis, UserProfile } from './types';
 import { FEATURED_ARTWORKS, GLOBAL_ANALYSES } from './constants';
 import BottomNav from './components/BottomNav';
 import AnalysisView from './components/AnalysisView';
 import Logo from './components/Logo';
 import OnboardingModal from './components/OnboardingModal';
 import AdminDashboard from './pages/AdminDashboard';
-import Exhibitions from './pages/Exhibitions';
-import ExhibitionDetail from './pages/ExhibitionDetail';
 import { authAPI, analysisAPI } from './services/apiService';
-import { exhibitionAPI } from './services/exhibitionService';
 import { SkeletonArtworkList } from './components/SkeletonLoading';
 
 // Error Boundary Component
@@ -84,12 +81,8 @@ const App: React.FC = () => {
   };
 
   const [currentTab, setCurrentTab] = useState<AppTab>(AppTab.HOME);
-  const [currentExhibitionId, setCurrentExhibitionId] = useState<number | null>(null);
-  const [activeExhibitionId, setActiveExhibitionId] = useState<number | null>(null);
 
-  // User Profile - Collection Type
-  const [collectionType, setCollectionType] = useState<'artwork' | 'exhibition'>('artwork');
-  const [myExhibitions, setMyExhibitions] = useState<Exhibition[]>([]);
+  // User Profile - Collection
   const [analysis, setAnalysis] = useState<ArtworkAnalysis | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   // 用户可选填的艺术品提示信息，帮助 AI 更准确地识别
@@ -133,19 +126,8 @@ const App: React.FC = () => {
       const profile = await authAPI.getUserProfile();
       setProfile(profile);
       await refreshUserAnalyses();
-      await refreshMyExhibitions();
     } catch (err) {
       console.error("Failed to fetch user profile", err);
-    }
-  };
-
-  const refreshMyExhibitions = async () => {
-    try {
-      const { exhibitionAPI } = await import('./services/exhibitionService');
-      const exhibitions = await exhibitionAPI.getMyFavorites();
-      setMyExhibitions(exhibitions);
-    } catch (err) {
-      console.error("Failed to fetch my exhibitions", err);
     }
   };
 
@@ -191,9 +173,8 @@ const App: React.FC = () => {
           localStorage.setItem('user_profile', JSON.stringify(newProfile));
           setIsLoggedIn(true);
 
-          // 2. 获取用户分析记录和收藏的展览
+          // 2. 获取用户分析记录
           await refreshUserAnalyses();
-          await refreshMyExhibitions();
         } catch (error) {
           console.error("Session restore failed", error);
           // Only clear session if token is invalid (401/403), but for simplicity clear on any error during init
@@ -207,12 +188,6 @@ const App: React.FC = () => {
     initApp();
   }, []); // Run once on mount
 
-  // Refresh exhibition favorites when switching to profile tab
-  useEffect(() => {
-    if (currentTab === AppTab.PROFILE && isLoggedIn) {
-      refreshMyExhibitions();
-    }
-  }, [currentTab, isLoggedIn]);
 
   // Filtered analyses for the discover tab - only use database data
   const filteredDiscoverAnalyses = useMemo(() => {

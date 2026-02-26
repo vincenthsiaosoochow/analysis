@@ -5,7 +5,6 @@ export enum AppTab {
   ANALYSIS = 'analysis',
   PROFILE = 'profile',
   ADMIN = 'admin',
-  EXHIBITIONS = 'exhibitions'
 }
 
 export interface ArtworkAnalysis {
@@ -59,48 +58,6 @@ export interface GalleryItem {
   likes: string;
   title?: string;
 }
-// 展览状态枚举（值与后端保持一致）
-export enum ExhibitionStatus {
-  UPCOMING = "upcoming",
-  ONGOING = "ongoing",
-  ENDED = "ended"
-}
-
-// 展览状态中文显示标签
-export const ExhibitionStatusLabel: Record<ExhibitionStatus, string> = {
-  [ExhibitionStatus.UPCOMING]: "即将开始",
-  [ExhibitionStatus.ONGOING]: "进行中",
-  [ExhibitionStatus.ENDED]: "已结束",
-};
-
-// 展览数据结构
-export interface Exhibition {
-  id: number;
-  title: string;
-  cover_image: string;
-  venue: string;
-  start_date: string;
-  end_date: string;
-  address?: string;
-  city?: string;
-  country?: string;
-  continent?: string;
-  ticket_info?: string;
-  description?: string;
-  official_link?: string;
-  status: ExhibitionStatus;
-  is_favorited?: boolean;
-  created_at?: string;
-}
-
-export interface ExhibitionFilterState {
-  status?: string;
-  city?: string;
-  keyword?: string;
-  skip?: number;
-  limit?: number;
-}
-
 export interface FeaturedItem {
   id: number;
   title: string;
