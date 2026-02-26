@@ -118,8 +118,8 @@ const AnalysisView: React.FC<AnalysisViewProps> = ({ analysis, onBack, isSaved =
 
       <main ref={reportRef} className="pb-24 bg-slate-50">
         <div className="px-5 py-6">
-          <div className="relative w-full aspect-[3/4] overflow-hidden rounded-2xl border border-slate-100 shadow-sm bg-white p-2">
-            <img alt={analysis.title} className="w-full h-full object-cover rounded-xl" src={analysis.imageUrl} crossOrigin="anonymous" />
+          <div className="relative w-full overflow-hidden rounded-2xl border border-slate-100 shadow-sm bg-white p-2">
+            <img alt={analysis.title} className="w-full h-auto object-contain rounded-xl" src={analysis.imageUrl} crossOrigin="anonymous" />
           </div>
         </div>
 
