@@ -1,5 +1,5 @@
 
-import React, { useRef } from 'react';
+import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { ArtworkAnalysis } from '../types';
 
 interface AnalysisViewProps {
@@ -25,6 +25,20 @@ const ReportLogo: React.FC = () => (
 
 const AnalysisView: React.FC<AnalysisViewProps> = ({ analysis, onBack, isSaved = false, onToggleSave, onLogin, onShowAgreement }) => {
   const reportRef = useRef<HTMLDivElement>(null);
+  const [showBackToTop, setShowBackToTop] = useState(false);
+
+  // 监听滚动，超过 400px 显示回到顶部按钮
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowBackToTop(window.scrollY > 400);
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const scrollToTop = useCallback(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
 
   const getRatingColor = (rating: string) => {
     switch (rating) {
@@ -277,6 +291,17 @@ const AnalysisView: React.FC<AnalysisViewProps> = ({ analysis, onBack, isSaved =
           </div>
         </div>
       </main>
+
+      {/* 回到顶部按钮 */}
+      {showBackToTop && (
+        <button
+          onClick={scrollToTop}
+          className="fixed bottom-24 right-4 z-50 size-11 flex items-center justify-center bg-white/90 backdrop-blur-md border border-slate-200 rounded-full shadow-lg shadow-slate-200/50 text-slate-600 hover:text-fuhung-blue hover:border-fuhung-blue/30 active:scale-90 transition-all animate-fade-in"
+          aria-label="回到顶部"
+        >
+          <span className="material-symbols-outlined text-xl">keyboard_arrow_up</span>
+        </button>
+      )}
 
       <div className="fixed bottom-0 left-0 right-0 p-5 bg-white/90 backdrop-blur-xl border-t border-slate-100 flex gap-4 max-w-md mx-auto z-50">
         <button
