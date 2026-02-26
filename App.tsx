@@ -114,7 +114,7 @@ const App: React.FC = () => {
 
   // Pagination state for discover page
   const [discoverPage, setDiscoverPage] = useState(1);
-  const ITEMS_PER_PAGE = 20;
+  const ITEMS_PER_PAGE = 10;
   // Removed isInitializing state
 
   // Data Refresh Helpers
@@ -503,36 +503,6 @@ const App: React.FC = () => {
         </div>
       )}
 
-      <section className="mb-10">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-lg font-bold text-slate-900">精选发现</h2>
-          <button onClick={() => setCurrentTab(AppTab.DISCOVER)} className="text-primary text-sm font-medium hover:underline">查看更多</button>
-        </div>
-
-        <div className="masonry-container">
-          {featuredAnalyses.slice(0, 10).map((art) => (
-            <div key={art.id} className="masonry-item group cursor-pointer" onClick={() => setAnalysis(art)}>
-              <div className="relative rounded-2xl overflow-hidden border border-slate-100 shadow-sm transition-transform active:scale-95 mb-2 bg-slate-50">
-                <img
-                  alt={art.title}
-                  className="w-full h-auto object-cover"
-                  src={art.imageUrl}
-                  crossOrigin="anonymous"
-                  loading="lazy"
-                />
-                <div className="absolute bottom-3 left-3 bg-black/40 backdrop-blur-md px-2 py-0.5 rounded-full flex items-center gap-1">
-                  <span className="material-symbols-outlined text-[8px] text-white fill-white">favorite</span>
-                  <span className="text-[9px] font-bold text-white uppercase tracking-tighter">{art.likes}</span>
-                </div>
-              </div>
-              <div className="px-1 mb-4">
-                <h3 className="font-bold text-slate-900 text-[13px] leading-tight line-clamp-1">{art.title}</h3>
-                <p className="text-slate-400 text-[11px] mt-0.5">{art.artist}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
 
       <footer className="w-full py-8 flex flex-col items-center justify-center bg-transparent">
         <p className="text-slate-300 text-[9px] uppercase tracking-widest">© 2026 FUHUNG Art Analysis</p>
