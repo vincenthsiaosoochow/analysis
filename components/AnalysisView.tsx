@@ -30,7 +30,7 @@ const AnalysisView: React.FC<AnalysisViewProps> = ({ analysis, onBack, isSaved =
   // 监听滚动，超过 400px 显示回到顶部按钮
   useEffect(() => {
     const handleScroll = () => {
-      setShowBackToTop(window.scrollY > 400);
+      setShowBackToTop(window.scrollY > 200);
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
