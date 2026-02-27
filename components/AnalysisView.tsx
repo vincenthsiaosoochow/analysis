@@ -27,14 +27,24 @@ const AnalysisView: React.FC<AnalysisViewProps> = ({ analysis, onBack, isSaved =
   const reportRef = useRef<HTMLDivElement>(null);
   const [showBackToTop, setShowBackToTop] = useState(false);
 
-  // 监听滚动，超过 400px 显示回到顶部按钮
+  // NOTE: 动态计算页面 1/3 高度作为阈值，而不是固定像素值
+  // 这样无论报告长短，都能在用户滑过 1/3 内容时显示按钮
   useEffect(() => {
     const handleScroll = () => {
-      setShowBackToTop(window.scrollY > 200);
+      const pageHeight = document.documentElement.scrollHeight - window.innerHeight;
+      const threshold = pageHeight / 3;
+      setShowBackToTop(window.scrollY > threshold);
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  // NOTE: 动态更新页面标题，让分享和浏览器标签显示具体的报告名称
+  useEffect(() => {
+    const reportTitle = `${analysis.artist}-${analysis.title} | 深度分析报告`;
+    document.title = reportTitle;
+    return () => { document.title = 'FUHUNG ART ANALYSIS'; };
+  }, [analysis.artist, analysis.title]);
 
   const scrollToTop = useCallback(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -52,8 +62,9 @@ const AnalysisView: React.FC<AnalysisViewProps> = ({ analysis, onBack, isSaved =
 
 
 
+  // NOTE: 标题格式匹配 document.title，分享时自动带上正确的报告名
   const handleShare = async () => {
-    const shareTitle = `${analysis.artist}-${analysis.title} | 分析报告`;
+    const shareTitle = `${analysis.artist}-${analysis.title} | 深度分析报告`;
     const shareText = `这是由 FUHUNG AI 生成的专业艺术品投资分析报告，深度解析了作品《${analysis.title}》的艺术价值与市场潜力。`;
     // NOTE: 使用 hash 路由构建分享 URL，确保打开链接能直接看到报告
     const shareUrl = `${window.location.origin}/#/report/${analysis.id}`;

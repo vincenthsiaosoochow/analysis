@@ -96,6 +96,15 @@ const App: React.FC = () => {
       [AppTab.ADMIN]: '#/admin',
     };
     window.location.hash = tabRoutes[tab] || '#/home';
+
+    // NOTE: 动态设置页面标题，让浏览器标签和分享显示正确的页面名
+    const tabTitles: Record<string, string> = {
+      [AppTab.HOME]: 'FUHUNG AI 艺术分析',
+      [AppTab.DISCOVER]: '发现 | FUHUNG AI 艺术分析',
+      [AppTab.PROFILE]: '我的收藏 | FUHUNG AI 艺术分析',
+      [AppTab.ADMIN]: '管理后台 | FUHUNG AI 艺术分析',
+    };
+    document.title = tabTitles[tab] || 'FUHUNG ART ANALYSIS';
   }, []);
 
   const setAnalysis = useCallback((a: ArtworkAnalysis | null) => {
