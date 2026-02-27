@@ -99,10 +99,10 @@ const App: React.FC = () => {
 
     // NOTE: 动态设置页面标题，让浏览器标签和分享显示正确的页面名
     const tabTitles: Record<string, string> = {
-      [AppTab.HOME]: 'FUHUNG AI 艺术分析',
-      [AppTab.DISCOVER]: '发现 | FUHUNG AI 艺术分析',
-      [AppTab.PROFILE]: '我的收藏 | FUHUNG AI 艺术分析',
-      [AppTab.ADMIN]: '管理后台 | FUHUNG AI 艺术分析',
+      [AppTab.HOME]: 'FUHUNG ART ANALYSIS',
+      [AppTab.DISCOVER]: '发现 | FUHUNG ART ANALYSIS',
+      [AppTab.PROFILE]: '我的收藏 | FUHUNG ART ANALYSIS',
+      [AppTab.ADMIN]: '管理后台 | FUHUNG ART ANALYSIS',
     };
     document.title = tabTitles[tab] || 'FUHUNG ART ANALYSIS';
   }, []);
