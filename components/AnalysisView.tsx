@@ -27,13 +27,10 @@ const AnalysisView: React.FC<AnalysisViewProps> = ({ analysis, onBack, isSaved =
   const reportRef = useRef<HTMLDivElement>(null);
   const [showBackToTop, setShowBackToTop] = useState(false);
 
-  // NOTE: 动态计算页面 1/3 高度作为阈值，而不是固定像素值
-  // 这样无论报告长短，都能在用户滑过 1/3 内容时显示按钮
+  // NOTE: 用户开始滚动（100px）即显示回到顶部浮动按钮
   useEffect(() => {
     const handleScroll = () => {
-      const pageHeight = document.documentElement.scrollHeight - window.innerHeight;
-      const threshold = pageHeight / 3;
-      setShowBackToTop(window.scrollY > threshold);
+      setShowBackToTop(window.scrollY > 100);
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
